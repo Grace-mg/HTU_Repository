@@ -1,0 +1,54 @@
+"use client";
+
+import * as React from "react";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AccountMenu } from "@/components/navigation/account-menu";
+import { MobileNavDrawer } from "@/components/navigation/mobile-nav-drawer";
+import { USER_NAV_ITEMS, ADMIN_NAV_ITEMS } from "@/components/navigation/dashboard-sidebar";
+
+export interface DashboardTopbarProps {
+  mode: "user" | "admin";
+  userEmail?: string;
+}
+
+export function DashboardTopbar({ mode, userEmail }: DashboardTopbarProps) {
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const items = mode === "admin" ? ADMIN_NAV_ITEMS : USER_NAV_ITEMS;
+
+  return (
+    <>
+      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm">
+        {/* Left: Mobile menu toggle button */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="lg:hidden h-8 w-8"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open sidebar menu"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {mode === "admin" ? "Admin Control Panel" : "Student Dashboard"}
+          </span>
+        </div>
+
+        {/* Right: Account Menu */}
+        <div className="flex items-center gap-3">
+          <AccountMenu userEmail={userEmail} userRole={mode} />
+        </div>
+      </header>
+
+      {/* Mobile drawer */}
+      <MobileNavDrawer
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        title={mode === "admin" ? "PROJECT-HUB Admin" : "PROJECT-HUB"}
+        links={items}
+      />
+    </>
+  );
+}

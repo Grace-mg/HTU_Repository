@@ -14,7 +14,7 @@ export function TableWrapper({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto rounded-md border border-border bg-background shadow-xs",
+        "w-full overflow-x-auto rounded-md border border-border bg-background shadow-sm",
         className
       )}
       {...props}

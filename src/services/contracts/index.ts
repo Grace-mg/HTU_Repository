@@ -1,4 +1,11 @@
-/**
- * Service contracts export placeholder for Phase 1.
- */
-export {};
+export * from "./auth-service";
+export * from "./repository-service";
+export * from "./faculty-service";
+export * from "./department-service";
+export * from "./category-service";
+export * from "./bookmark-service";
+export * from "./user-service";
+export * from "./report-service";
+export * from "./settings-service";
+export * from "./file-service";
+export * from "./unconfigured-service";
