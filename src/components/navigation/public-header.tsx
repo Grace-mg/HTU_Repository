@@ -18,22 +18,11 @@ const PUBLIC_NAV_LINKS: NavLinkItem[] = [
 function BrandLogo() {
   return (
     <div className="flex items-center gap-2.5">
-      {/* Abstract Blue/Orange Swirl Logo Icon */}
-      <svg
-        viewBox="0 0 36 36"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-8 w-8 flex-shrink-0"
-      >
-        <path
-          d="M8.5 28.5C6.5 28.5 5 27 5 25C5 23 6.5 21.5 8.5 21.5C10.5 21.5 12 23 12 25C12 27 10.5 28.5 8.5 28.5Z"
-          fill="#EAB308"
-        />
-        <path
-          d="M10 25C12.5 32 20 35 27 30C34 25 33 13 25 7C17 1 9 10 16 18C21 24 28 24 23 31C19 36 12 32 10 25Z"
-          fill="#3B82F6"
-        />
-      </svg>
+      <img
+        src="/Repository Assets/LOGO-REPO.png"
+        alt="Final Year Repo Logo"
+        className="h-9 w-auto object-contain flex-shrink-0"
+      />
       {/* Brand Text */}
       <div className="flex flex-col text-left leading-tight font-extrabold text-foreground text-sm tracking-tight">
         <span>Final Year</span>

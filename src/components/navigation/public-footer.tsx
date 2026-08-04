@@ -4,25 +4,15 @@ import Link from "next/link";
 function BrandLogoLarge() {
   return (
     <div className="flex items-center gap-3">
-      {/* Abstract Blue/Orange Swirl Logo Icon — larger for footer */}
-      <svg
-        viewBox="0 0 36 36"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-14 w-14 flex-shrink-0"
-      >
-        <path
-          d="M8.5 28.5C6.5 28.5 5 27 5 25C5 23 6.5 21.5 8.5 21.5C10.5 21.5 12 23 12 25C12 27 10.5 28.5 8.5 28.5Z"
-          fill="#EAB308"
-        />
-        <path
-          d="M10 25C12.5 32 20 35 27 30C34 25 33 13 25 7C17 1 9 10 16 18C21 24 28 24 23 31C19 36 12 32 10 25Z"
-          fill="#3B82F6"
-        />
-      </svg>
-      <span className="text-xl font-extrabold text-foreground leading-tight">
-        Final Year<br />Repo
-      </span>
+      <img
+        src="/Repository Assets/LOGO-REPO.png"
+        alt="Final Year Repo Logo"
+        className="h-14 w-auto object-contain flex-shrink-0"
+      />
+      <div className="flex flex-col text-xl font-extrabold text-foreground leading-tight">
+        <span>Final Year</span>
+        <span>Repo</span>
+      </div>
     </div>
   );
 }
@@ -63,8 +53,35 @@ export function PublicFooter() {
               Faculties
             </p>
             <ul className="space-y-2 text-xs">
-              <li className="text-muted-foreground">
-                Faculty listings will appear once data is connected.
+              <li>
+                <Link href="/browse?faculty=fast" className="hover:text-foreground transition-colors">
+                  Faculty of Applied Sciences and Technology
+                </Link>
+              </li>
+              <li>
+                <Link href="/browse?faculty=hbs" className="hover:text-foreground transition-colors">
+                  HTU Business School
+                </Link>
+              </li>
+              <li>
+                <Link href="/browse?faculty=eng" className="hover:text-foreground transition-colors">
+                  Faculty of Engineering
+                </Link>
+              </li>
+              <li>
+                <Link href="/browse?faculty=art" className="hover:text-foreground transition-colors">
+                  Faculty of Art and Design
+                </Link>
+              </li>
+              <li>
+                <Link href="/browse?faculty=bne" className="hover:text-foreground transition-colors">
+                  Faculty of Built and Natural Environment
+                </Link>
+              </li>
+              <li>
+                <Link href="/browse?faculty=fass" className="hover:text-foreground transition-colors">
+                  Faculty of Applied Social Sciences
+                </Link>
               </li>
             </ul>
           </div>
@@ -76,28 +93,13 @@ export function PublicFooter() {
             </p>
             <ul className="space-y-2 text-xs">
               <li>
+                <Link href="/browse" className="underline hover:text-foreground transition-colors">
+                  Ho Technical University Academic Departments
+                </Link>
+              </li>
+              <li>
                 <Link href="/browse" className="hover:text-foreground transition-colors">
                   Browse Records
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="hover:text-foreground transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-foreground transition-colors">
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/login" className="hover:text-foreground transition-colors">
-                  User Login
-                </Link>
-              </li>
-              <li>
-                <Link href="/register" className="hover:text-foreground transition-colors">
-                  Sign Up
                 </Link>
               </li>
             </ul>

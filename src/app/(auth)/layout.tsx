@@ -16,7 +16,11 @@ export default function AuthLayout({
             href="/"
             className="flex items-center gap-2 text-xl font-bold tracking-tight text-foreground"
           >
-            <GraduationCap className="h-7 w-7 text-primary" />
+            <img
+              src="/Repository Assets/LOGO-REPO.png"
+              alt="Final Year Repo Logo"
+              className="h-10 w-auto object-contain flex-shrink-0"
+            />
             <span>PROJECT-HUB</span>
           </Link>
           <p className="text-xs text-muted-foreground">

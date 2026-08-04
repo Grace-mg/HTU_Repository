@@ -58,7 +58,11 @@ export function MobileNavDrawer({
               className="flex items-center gap-2 text-base font-bold tracking-tight text-foreground"
               onClick={onClose}
             >
-              <GraduationCap className="h-5 w-5 text-primary" />
+              <img
+                src="/Repository Assets/LOGO-REPO.png"
+                alt="Final Year Repo Logo"
+                className="h-6 w-auto object-contain flex-shrink-0"
+              />
               <span>{title}</span>
             </Link>
             <Button

@@ -75,7 +75,11 @@ export function DashboardSidebar({ mode }: DashboardSidebarProps) {
             collapsed ? "justify-center w-full" : "px-2"
           )}
         >
-          <GraduationCap className="h-5 w-5 text-primary flex-shrink-0" />
+          <img
+            src="/Repository Assets/LOGO-REPO.png"
+            alt="Final Year Repo Logo"
+            className="h-6 w-auto object-contain flex-shrink-0"
+          />
           {!collapsed && (
             <span className="text-sm tracking-tight truncate">
               {mode === "admin" ? "PROJECT-HUB Admin" : "PROJECT-HUB"}

@@ -24,7 +24,8 @@ describe("Phase 3 Layout & Navigation Tests", () => {
 
   it("renders PublicFooter with copyright and repository sections", () => {
     render(<PublicFooter />);
-    expect(screen.getAllByText(/Final Year Repo/i)[0]).toBeDefined();
+    expect(screen.getByAltText("Final Year Repo Logo")).toBeDefined();
+    expect(screen.getAllByText("Final Year")[0]).toBeDefined();
     expect(screen.getByText("Browse Records")).toBeDefined();
   });
 
