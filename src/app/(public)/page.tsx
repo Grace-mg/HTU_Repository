@@ -9,7 +9,7 @@ function HeroSection() {
     <section className="relative w-full min-h-[520px] md:min-h-[620px] flex items-center justify-center overflow-hidden">
       {/* Background image */}
       <img
-        src="/Repository Assets/Spelman College graduates are an inspiration to black women (photos).jpg"
+        src="/Repository Assets/Investment not only needs finance but also people with the right skills_ A pilot project, Vocational, Education and Training (VET) Toolbox 2, will support to develop skills in eleven sub-Saharan African countries.jpg"
         alt="Final Year Project Showcase Background"
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
@@ -35,7 +35,6 @@ function HeroSection() {
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button asChild size="lg" className="min-w-[180px] gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md px-8 py-3 text-sm font-semibold shadow-lg shadow-blue-600/30">
             <Link href="/browse">
-              <Search className="h-4 w-4" />
               Explore the Archive
             </Link>
           </Button>
