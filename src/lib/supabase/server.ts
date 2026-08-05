@@ -1,22 +1,34 @@
-import { DataSourceNotConfiguredError } from "@/lib/errors/app-error";
+import { createServerClient as createSSRServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 /**
- * Server Supabase Client Boundary Placeholder.
- * Connected to actual Supabase client once schema & auth parameters are provided in Phase 19/20.
+ * Real Supabase Server Client.
+ * Manages authenticated server sessions via Next.js cookies.
  */
 export async function createServerClient() {
-  return {
-    auth: {
-      getUser: async () => ({ data: { user: null }, error: null }),
-      getSession: async () => ({ data: { session: null }, error: null }),
-    },
-    from: () => {
-      throw new DataSourceNotConfiguredError();
-    },
-    storage: {
-      from: () => {
-        throw new DataSourceNotConfiguredError();
+  const cookieStore = cookies();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
+
+  return createSSRServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
+      },
+      set(name: string, value: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value, ...options });
+        } catch {
+          // Ignore if called from Server Component
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          cookieStore.set({ name, value: "", ...options });
+        } catch {
+          // Ignore if called from Server Component
+        }
       },
     },
-  };
+  });
 }

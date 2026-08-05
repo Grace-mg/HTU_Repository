@@ -18,13 +18,17 @@ import {
   BarChart3,
   Settings,
   History,
-  GraduationCap,
   ChevronLeft,
   ChevronRight,
+  CheckSquare,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NavLinkItem } from "@/components/navigation/mobile-nav-drawer";
+import { SupabaseAuthService } from "@/services/supabase-auth-service";
+
+const authService = new SupabaseAuthService();
 
 export const USER_NAV_ITEMS: NavLinkItem[] = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -39,6 +43,7 @@ export const ADMIN_NAV_ITEMS: NavLinkItem[] = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
   { label: "Records", href: "/admin/records", icon: FolderKanban },
   { label: "Add Record", href: "/admin/records/new", icon: FilePlus },
+  { label: "Approvals", href: "/admin/approvals", icon: CheckSquare },
   { label: "Faculties", href: "/admin/faculties", icon: Building2 },
   { label: "Departments", href: "/admin/departments", icon: Building },
   { label: "Categories", href: "/admin/categories", icon: Tags },
@@ -57,7 +62,34 @@ export interface DashboardSidebarProps {
 export function DashboardSidebar({ mode }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = React.useState(false);
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    async function loadUser() {
+      const u = await authService.getCurrentUser();
+      if (u) {
+        setCurrentUser(u);
+      }
+    }
+    loadUser();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (err) {
+      console.error("[Logout Error]", err);
+    } finally {
+      window.location.href = "/login";
+    }
+  };
+
   const items = mode === "admin" ? ADMIN_NAV_ITEMS : USER_NAV_ITEMS;
+
+  const displayName =
+    currentUser?.name ||
+    currentUser?.email?.split("@")[0] ||
+    (mode === "admin" ? "System Administrator" : "Student User");
 
   return (
     <aside
@@ -128,14 +160,38 @@ export function DashboardSidebar({ mode }: DashboardSidebarProps) {
         })}
       </div>
 
-      {/* Sidebar Footer */}
-      <div className="p-3 border-t border-border text-[11px] text-muted-foreground">
+      {/* Sidebar Footer with User Profile & Logout Button */}
+      <div className="p-3 border-t border-border bg-muted/30 flex items-center justify-between">
         {!collapsed ? (
-          <div className="truncate">
-            <span className="font-semibold capitalize text-foreground">{mode} Portal</span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-8 w-8 rounded-full bg-blue-600/10 text-blue-600 font-bold flex items-center justify-center text-xs shrink-0 border border-blue-600/20">
+              {displayName[0]?.toUpperCase()}
+            </div>
+            <div className="flex flex-col truncate min-w-0">
+              <span className="font-bold text-xs text-foreground truncate">{displayName}</span>
+              <span className="text-[10px] text-muted-foreground capitalize font-medium">
+                {mode === "admin" ? "Administrator" : "Student Portal"}
+              </span>
+            </div>
           </div>
         ) : (
-          <div className="text-center font-bold uppercase text-[9px]">{mode[0]}</div>
+          <div className="flex justify-center w-full">
+            <div className="h-7 w-7 rounded-full bg-blue-600/10 text-blue-600 font-bold flex items-center justify-center text-[10px]">
+              {displayName[0]?.toUpperCase()}
+            </div>
+          </div>
+        )}
+
+        {!collapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            title="Log out"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         )}
       </div>
     </aside>

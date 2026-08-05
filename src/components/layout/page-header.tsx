@@ -11,26 +11,34 @@ export function PageHeader({
   title,
   description,
   actions,
+  children,
   className,
   ...props
-}: PageHeaderProps) {
+}: PageHeaderProps & { children?: React.ReactNode }) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 pb-6 md:flex-row md:items-center md:justify-between border-b border-border mb-6",
+        "w-full rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all mb-6",
         className
       )}
       {...props}
     >
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+        <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-foreground">
           {title}
         </h1>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
+            {description}
+          </p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-3">{actions}</div>}
+      {(actions || children) && (
+        <div className="flex items-center gap-3 shrink-0">
+          {actions}
+          {children}
+        </div>
+      )}
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RecordFileCard } from "@/components/projects/record-file-card";
 import { RepositoryRecordCard } from "@/components/projects/repository-record-card";
+import { BookmarkButton } from "@/components/projects/bookmark-button";
 import { cn } from "@/lib/utils";
 
 export interface RecordDetailViewProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -66,9 +67,12 @@ export function RecordDetailView({
             <CheckCircle className="h-3 w-3" /> HOD Approved & Published
           </span>
 
-          <span className="text-xs text-muted-foreground ml-auto">
-            Academic Year {record.academicYear}
-          </span>
+          <div className="flex items-center gap-3 ml-auto">
+            <span className="text-xs text-muted-foreground">
+              Academic Year {record.academicYear}
+            </span>
+            <BookmarkButton recordId={record.id} recordTitle={record.title} />
+          </div>
         </div>
 
         <h1 className="text-2xl font-extrabold text-foreground sm:text-3xl md:text-4xl leading-tight tracking-tight">

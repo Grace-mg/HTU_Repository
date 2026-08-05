@@ -3,6 +3,7 @@ import Link from "next/link";
 import { User, BookOpen, GraduationCap, Calendar, Tag, ArrowRight } from "lucide-react";
 import { RepositoryRecord } from "@/types/repository";
 import { Badge } from "@/components/ui/badge";
+import { BookmarkButton } from "@/components/projects/bookmark-button";
 import { cn } from "@/lib/utils";
 
 export interface RepositoryRecordCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -40,10 +41,13 @@ export function RepositoryRecordCard({
             {isProject ? "Project" : "Thesis"}
           </Badge>
 
-          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground font-medium">
-            <Calendar className="h-3.5 w-3.5" />
-            {record.academicYear}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground font-medium">
+              <Calendar className="h-3.5 w-3.5" />
+              {record.academicYear}
+            </span>
+            <BookmarkButton recordId={record.id} recordTitle={record.title} compact />
+          </div>
         </div>
 
         {/* Title */}

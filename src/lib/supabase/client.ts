@@ -1,23 +1,12 @@
-import { DataSourceNotConfiguredError } from "@/lib/errors/app-error";
+import { createBrowserClient as createSSRBrowserClient } from "@supabase/ssr";
 
 /**
- * Browser Supabase Client Boundary Placeholder.
- * Connected to actual Supabase client once schema & auth parameters are provided in Phase 19/20.
+ * Real Supabase Browser Client.
+ * Initialized with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
  */
 export function createBrowserClient() {
-  return {
-    auth: {
-      getUser: async () => ({ data: { user: null }, error: null }),
-      getSession: async () => ({ data: { session: null }, error: null }),
-      signOut: async () => ({ error: null }),
-    },
-    from: () => {
-      throw new DataSourceNotConfiguredError();
-    },
-    storage: {
-      from: () => {
-        throw new DataSourceNotConfiguredError();
-      },
-    },
-  };
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
+
+  return createSSRBrowserClient(supabaseUrl, supabaseAnonKey);
 }

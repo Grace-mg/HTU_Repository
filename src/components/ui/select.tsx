@@ -10,7 +10,6 @@ interface SelectContextType {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   selectedLabel: string;
-  setSelectedLabel: React.Dispatch<React.SetStateAction<string>>;
   registerOption: (val: string, label: string) => void;
 }
 
@@ -37,22 +36,17 @@ export function Select({ value: controlledValue, onValueChange, children, defaul
   const currentValue = isControlled ? controlledValue : uncontrolledValue;
 
   const [open, setOpen] = React.useState(false);
-  const [selectedLabel, setSelectedLabel] = React.useState("");
-  const optionsMap = React.useRef<Map<string, string>>(new Map());
+  const [labels, setLabels] = React.useState<Record<string, string>>({});
   const selectRef = React.useRef<HTMLDivElement>(null);
 
   const registerOption = React.useCallback((val: string, label: string) => {
-    optionsMap.current.set(val, label);
-    if (val === currentValue) {
-      setSelectedLabel(label);
-    }
-  }, [currentValue]);
+    setLabels((prev) => {
+      if (prev[val] === label) return prev;
+      return { ...prev, [val]: label };
+    });
+  }, []);
 
-  React.useEffect(() => {
-    if (currentValue !== undefined && optionsMap.current.has(currentValue)) {
-      setSelectedLabel(optionsMap.current.get(currentValue) || "");
-    }
-  }, [currentValue]);
+  const selectedLabel = (currentValue !== undefined && labels[currentValue]) ? labels[currentValue] : "";
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -94,7 +88,6 @@ export function Select({ value: controlledValue, onValueChange, children, defaul
         open,
         setOpen,
         selectedLabel,
-        setSelectedLabel,
         registerOption,
       }}
     >
@@ -152,13 +145,12 @@ export const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps
   ({ className, children, ...props }, ref) => {
     const { open } = useSelectContext();
 
-    if (!open) return null;
-
     return (
       <div
         ref={ref}
         className={cn(
           "absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-lg transition-all animate-in fade-in-80 zoom-in-95",
+          !open && "hidden",
           className
         )}
         {...props}

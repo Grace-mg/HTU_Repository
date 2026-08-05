@@ -24,6 +24,7 @@ describe("Phase 4 Domain Models & Validation Tests", () => {
       email: "john@university.edu",
       password: "Password123",
       confirmPassword: "Password123",
+      terms: true,
     });
     expect(valid.success).toBe(true);
 
@@ -32,8 +33,18 @@ describe("Phase 4 Domain Models & Validation Tests", () => {
       email: "john@university.edu",
       password: "Password123",
       confirmPassword: "DifferentPassword123",
+      terms: true,
     });
     expect(mismatch.success).toBe(false);
+
+    const noTerms = registerSchema.safeParse({
+      name: "John Doe",
+      email: "john@university.edu",
+      password: "Password123",
+      confirmPassword: "Password123",
+      terms: false,
+    });
+    expect(noTerms.success).toBe(false);
   });
 
   it("validates createRepositoryRecordSchema correctly", () => {

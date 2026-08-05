@@ -7,24 +7,43 @@ import { BrowseFiltersSidebar } from "@/components/filters/browse-filters-sideba
 import { ActiveFilterTags, ActiveFilterItem } from "@/components/filters/active-filter-tags";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { RepositoryRecordCard } from "@/components/projects/repository-record-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FolderOpen, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RecordType } from "@/types/repository";
+import { RecordType, RepositoryRecord } from "@/types/repository";
+import { repositoryService } from "@/services/supabase-repository-service";
 
 export default function BrowsePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const query = searchParams.get("q") || "";
-  const typeParam = searchParams.get("type") as RecordType | undefined;
-  const facultyParam = searchParams.get("faculty") || "all";
-  const deptParam = searchParams.get("department") || "all";
-  const yearParam = searchParams.get("year") || "all";
-  const categoryParam = searchParams.get("category") || "all";
+  const typeParam = (searchParams.get("recordType") || searchParams.get("type")) as RecordType | undefined;
+  const facultyParam = searchParams.get("facultyId") || searchParams.get("faculty") || "all";
+  const deptParam = searchParams.get("departmentId") || searchParams.get("department") || "all";
+  const yearParam = searchParams.get("academicYear") || searchParams.get("year") || "all";
+  const categoryParam = searchParams.get("categoryId") || searchParams.get("category") || "all";
   const sortParam = searchParams.get("sort") || "newest";
 
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
+  const [records, setRecords] = React.useState<RepositoryRecord[]>([]);
+
+  React.useEffect(() => {
+    async function loadPublishedRecords() {
+      const res = await repositoryService.getRecords({
+        query: query || undefined,
+        recordType: typeParam || undefined,
+        status: "PUBLISHED",
+        facultyId: facultyParam !== "all" ? facultyParam : undefined,
+        departmentId: deptParam !== "all" ? deptParam : undefined,
+        categoryId: categoryParam !== "all" ? categoryParam : undefined,
+        academicYear: yearParam !== "all" ? Number(yearParam) : undefined,
+      });
+      setRecords(res.records);
+    }
+    loadPublishedRecords();
+  }, [query, typeParam, facultyParam, deptParam, yearParam, categoryParam]);
 
   // Helper to update URL search parameters
   const updateParams = React.useCallback(
@@ -59,7 +78,7 @@ export default function BrowsePage() {
       {/* Page Header */}
       <PageHeader
         title="Repository Records Archive"
-        description="Search and explore approved final year software builds, engineering prototypes, and academic research papers."
+        description="Search and explore approved final year software builds, engineering prototypes, and academic research papers from Supabase database."
       />
 
       {/* Top Search Bar & Sort Dropdown Row */}
@@ -98,7 +117,6 @@ export default function BrowsePage() {
                 <SelectItem value="oldest">Oldest First</SelectItem>
                 <SelectItem value="title_asc">Title (A-Z)</SelectItem>
                 <SelectItem value="title_desc">Title (Z-A)</SelectItem>
-                <SelectItem value="relevance">Relevance</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -150,21 +168,29 @@ export default function BrowsePage() {
 
         {/* Results Viewport */}
         <div className="lg:col-span-3 space-y-6">
-          <EmptyState
-            title="Data Source Not Connected"
-            description="The repository data source is initialized and ready. Approved student records will be populated when Supabase integration parameters are configured."
-            icon={FolderOpen}
-            action={
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push("/browse")}
-                className="text-xs font-semibold"
-              >
-                Clear Search Filters
-              </Button>
-            }
-          />
+          {records.length === 0 ? (
+            <EmptyState
+              title="No Records Found"
+              description="No published academic records match your current search and filter criteria."
+              icon={FolderOpen}
+              action={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push("/browse")}
+                  className="text-xs font-semibold"
+                >
+                  Clear Search Filters
+                </Button>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {records.map((r) => (
+                <RepositoryRecordCard key={r.id} record={r} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

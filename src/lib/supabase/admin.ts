@@ -1,18 +1,17 @@
-import { DataSourceNotConfiguredError } from "@/lib/errors/app-error";
+import { createClient } from "@supabase/supabase-js";
 
 /**
- * Privileged Admin Supabase Client Placeholder.
- * Used exclusively for administrative mutations when backend schema is provided.
+ * Privileged Admin Supabase Client.
+ * Uses SUPABASE_SERVICE_ROLE_KEY for administrative operations.
  */
 export function createAdminClient() {
-  return {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder-key";
+
+  return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
-      admin: {
-        listUsers: async () => ({ data: { users: [] }, error: null }),
-      },
+      autoRefreshToken: false,
+      persistSession: false,
     },
-    from: () => {
-      throw new DataSourceNotConfiguredError();
-    },
-  };
+  });
 }

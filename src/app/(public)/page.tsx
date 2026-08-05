@@ -122,9 +122,10 @@ function BrowseByDepartmentsSection() {
               Explore student innovations across specialized academic disciplines
             </p>
           </div>
-          <Button asChild variant="outline" className="gap-2 border-blue-600/30 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 font-bold">
-            <Link href="/browse">
-              View All Departments <ArrowRight className="h-4 w-4" />
+          <Button asChild variant="outline" className="border-blue-600/30 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 font-bold">
+            <Link href="/browse" className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+              <span>View All Departments</span>
+              <ArrowRight className="h-4 w-4 flex-shrink-0" />
             </Link>
           </Button>
         </div>

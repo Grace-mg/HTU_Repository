@@ -1,16 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { env } from "@/lib/env";
-import { DataSourceNotConfiguredError } from "@/lib/errors/app-error";
 import { createBrowserClient } from "@/lib/supabase/client";
 
-describe("Phase 1 Foundation Setup", () => {
+describe("Phase 1 Foundation & Supabase Setup", () => {
   it("validates environment defaults safely", () => {
     expect(env.NEXT_PUBLIC_APP_URL).toBeDefined();
     expect(env.NEXT_PUBLIC_SUPABASE_URL).toBeDefined();
   });
 
-  it("throws DataSourceNotConfiguredError when accessing database client before schema integration", () => {
+  it("initializes Supabase browser client safely", () => {
     const client = createBrowserClient();
-    expect(() => client.from()).toThrow(DataSourceNotConfiguredError);
+    expect(client).toBeDefined();
+    expect(client.auth).toBeDefined();
+    expect(client.from).toBeDefined();
   });
 });

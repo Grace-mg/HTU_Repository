@@ -6,7 +6,11 @@ export type RecordStatus =
   | "DRAFT"
   | "PUBLISHED"
   | "ARCHIVED"
-  | "PENDING_REVIEW";
+  | "PENDING_REVIEW"
+  | "PENDING_HOD"
+  | "PENDING_DEAN"
+  | "APPROVED"
+  | "REJECTED";
 
 export interface RepositoryRecord {
   id: string;

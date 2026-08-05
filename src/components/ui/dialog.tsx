@@ -100,6 +100,13 @@ export function DialogFooter({
   );
 }
 
+export function DialogContent({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("space-y-4", className)} {...props} />;
+}
+
 export function DialogClose({
   onClick,
 }: {

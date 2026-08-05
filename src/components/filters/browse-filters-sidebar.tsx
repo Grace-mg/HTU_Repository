@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Filter, X, RotateCcw } from "lucide-react";
+import { Filter, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RecordType } from "@/types/repository";
+import { HTU_FACULTIES, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
 
 export interface FilterOption {
   id: string;
@@ -38,35 +39,22 @@ export function BrowseFiltersSidebar({
   selectedDepartment = "all",
   selectedYear = "all",
   selectedCategory = "all",
-  faculties = [
-    { id: "fast", name: "Faculty of Applied Sciences & Tech" },
-    { id: "hbs", name: "HTU Business School" },
-    { id: "eng", name: "Faculty of Engineering" },
-    { id: "art", name: "Faculty of Art & Design" },
-    { id: "bne", name: "Faculty of Built & Natural Env" },
-    { id: "fass", name: "Faculty of Applied Social Sciences" },
-  ],
-  departments = [
-    { id: "cs", name: "Computer Science" },
-    { id: "agric", name: "Agricultural Engineering" },
-    { id: "electrical", name: "Electrical & Electronic Engineering" },
-    { id: "mechanical", name: "Mechanical Engineering" },
-    { id: "fashion", name: "Fashion Design & Textiles" },
-    { id: "civil", name: "Civil Engineering" },
-    { id: "food-science", name: "Food Science & Technology" },
-  ],
+  faculties = HTU_FACULTIES,
   categories = [
-    { id: "software", name: "Software & Web Apps" },
-    { id: "hardware", name: "Hardware & IoT Prototypes" },
-    { id: "fashion", name: "Fashion & Textile Design" },
-    { id: "renewable", name: "Renewable Energy Systems" },
-    { id: "thesis", name: "Research & Analytical Theses" },
+    { id: "cat-1", name: "Software & Web Apps" },
+    { id: "cat-2", name: "Hardware & IoT Prototypes" },
+    { id: "cat-3", name: "Fashion & Textile Design" },
+    { id: "cat-4", name: "Research & Analytical Theses" },
   ],
   years = ["2026", "2025", "2024", "2023", "2022"],
   hideRecordTypeFilter = false,
   onFilterChange,
   onResetFilters,
 }: BrowseFiltersSidebarProps) {
+  const filteredDepartments = React.useMemo(() => {
+    return getDepartmentsByFaculty(selectedFaculty);
+  }, [selectedFaculty]);
+
   return (
     <aside className="w-full space-y-6 rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between border-b border-border pb-3">
@@ -118,7 +106,7 @@ export function BrowseFiltersSidebar({
         <Select
           value={selectedFaculty}
           onValueChange={(val) =>
-            onFilterChange({ facultyId: val === "all" ? undefined : val })
+            onFilterChange({ facultyId: val === "all" ? undefined : val, departmentId: undefined })
           }
         >
           <SelectTrigger className="h-9 text-xs">
@@ -135,7 +123,7 @@ export function BrowseFiltersSidebar({
         </Select>
       </div>
 
-      {/* Department Filter */}
+      {/* Department Filter (Cascades from Faculty) */}
       <div className="space-y-2">
         <label className="text-xs font-semibold text-foreground block">
           Department
@@ -151,7 +139,7 @@ export function BrowseFiltersSidebar({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Departments</SelectItem>
-            {departments.map((dept) => (
+            {filteredDepartments.map((dept) => (
               <SelectItem key={dept.id} value={dept.id}>
                 {dept.name}
               </SelectItem>
