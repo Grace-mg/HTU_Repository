@@ -13,8 +13,8 @@ vi.mock("next/navigation", () => ({
 describe("Phase 3 Layout & Navigation Tests", () => {
   it("renders PublicHeader with logo and navigation links", () => {
     render(<PublicHeader />);
-    expect(screen.getAllByText("Final Year")[0]).toBeDefined();
-    expect(screen.getAllByText("Repo")[0]).toBeDefined();
+    expect(screen.getAllByText("Project")[0]).toBeDefined();
+    expect(screen.getAllByText("HUB")[0]).toBeDefined();
     expect(screen.getByText("Home")).toBeDefined();
     expect(screen.getByText("Browse")).toBeDefined();
     expect(screen.getByText("About")).toBeDefined();
@@ -24,14 +24,15 @@ describe("Phase 3 Layout & Navigation Tests", () => {
 
   it("renders PublicFooter with copyright and repository sections", () => {
     render(<PublicFooter />);
-    expect(screen.getByAltText("Final Year Repo Logo")).toBeDefined();
-    expect(screen.getAllByText("Final Year")[0]).toBeDefined();
+    expect(screen.getByAltText("Project HUB Logo")).toBeDefined();
+    expect(screen.getAllByText("Project")[0]).toBeDefined();
     expect(screen.getByText("Browse Records")).toBeDefined();
   });
 
   it("renders DashboardSidebar in user mode with active route highlighting", () => {
     render(<DashboardSidebar mode="user" />);
     expect(screen.getByText("Overview")).toBeDefined();
+    expect(screen.getByText("Submit Project")).toBeDefined();
     expect(screen.getByText("Saved Records")).toBeDefined();
   });
 

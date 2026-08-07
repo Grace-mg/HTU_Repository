@@ -44,7 +44,7 @@ describe("Phase 6 Public Browse & Search Interface Tests", () => {
     expect(screen.getByText("IoT Solar-Powered Smart Irrigation System")).toBeDefined();
     expect(screen.getByText("Project")).toBeDefined();
     expect(screen.getByText("Kwaku Bonsu")).toBeDefined();
-    expect(screen.getByText("Supervisor: Dr. Seth Mensah")).toBeDefined();
+    expect(screen.getByText("Dr. Seth Mensah")).toBeDefined();
     expect(screen.getByText("Agricultural Engineering")).toBeDefined();
     expect(screen.getByText("42 views")).toBeDefined();
   });

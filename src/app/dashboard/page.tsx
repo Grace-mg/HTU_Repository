@@ -13,6 +13,8 @@ import {
   Shield,
   Clock,
   Building2,
+  UploadCloud,
+  FilePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
@@ -21,31 +23,41 @@ export default function UserDashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Welcome Banner Header */}
-      <div className="rounded-xl border border-blue-200/60 bg-gradient-to-r from-blue-500/10 via-blue-500/5 to-transparent p-6 sm:p-8 relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>User Portal Active</span>
-            </div>
-            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-              Welcome back to Project Hub
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-2xl">
-              Browse approved university projects, explore research theses, manage your saved bookmarks, and customize your profile settings.
-            </p>
-          </div>
-
-          <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-2 shrink-0 h-10 px-5">
-            <Link href="/browse">
-              <Search className="h-4 w-4" /> Search Repository
+      <PageHeader
+        badge="User Portal Active"
+        title="Welcome back to Project Hub"
+        description="Submit your final-year project, browse approved university research, explore theses, and manage your saved bookmarks."
+        actions={
+          <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-2 h-10 px-5">
+            <Link href="/dashboard/submit">
+              <UploadCloud className="h-4 w-4" /> Submit Project
             </Link>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Action Navigation Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Link
+          href="/dashboard/submit"
+          className="group p-5 rounded-xl border border-blue-500/30 bg-blue-50/30 dark:bg-blue-950/20 hover:border-blue-500/60 hover:shadow-md transition-all space-y-3"
+        >
+          <div className="flex items-center justify-between">
+            <div className="h-10 w-10 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+              <UploadCloud className="h-5 w-5" />
+            </div>
+            <ArrowRight className="h-4 w-4 text-blue-600 group-hover:translate-x-1 transition-all" />
+          </div>
+          <div>
+            <h3 className="font-bold text-sm text-foreground group-hover:text-blue-600 transition-colors">
+              Submit Project
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Upload thesis or project for HOD & Dean evaluation
+            </p>
+          </div>
+        </Link>
+
         <Link
           href="/dashboard/projects"
           className="group p-5 rounded-xl border border-border bg-card hover:border-blue-500/40 hover:shadow-md transition-all space-y-3"
@@ -82,46 +94,6 @@ export default function UserDashboardPage() {
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
               Academic dissertations & research papers
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/dashboard/saved"
-          className="group p-5 rounded-xl border border-border bg-card hover:border-blue-500/40 hover:shadow-md transition-all space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <div className="h-10 w-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center dark:bg-purple-950/50">
-              <Bookmark className="h-5 w-5" />
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
-          </div>
-          <div>
-            <h3 className="font-bold text-sm text-foreground group-hover:text-purple-600 transition-colors">
-              Saved Records
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              View your bookmarked research & builds
-            </p>
-          </div>
-        </Link>
-
-        <Link
-          href="/dashboard/profile"
-          className="group p-5 rounded-xl border border-border bg-card hover:border-blue-500/40 hover:shadow-md transition-all space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center dark:bg-emerald-950/50">
-              <User className="h-5 w-5" />
-            </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
-          </div>
-          <div>
-            <h3 className="font-bold text-sm text-foreground group-hover:text-emerald-600 transition-colors">
-              Profile & Account
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Manage personal info & security credentials
             </p>
           </div>
         </Link>

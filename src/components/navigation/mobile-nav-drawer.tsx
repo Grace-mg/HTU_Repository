@@ -60,7 +60,7 @@ export function MobileNavDrawer({
             >
               <img
                 src="/Repository Assets/LOGO-REPO.png"
-                alt="Final Year Repo Logo"
+                alt="Project HUB Logo"
                 className="h-6 w-auto object-contain flex-shrink-0"
               />
               <span>{title}</span>

@@ -22,16 +22,135 @@ import {
   ChevronRight,
   CheckSquare,
   LogOut,
+  Sun,
+  Moon,
+  Laptop,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NavLinkItem } from "@/components/navigation/mobile-nav-drawer";
 import { SupabaseAuthService } from "@/services/supabase-auth-service";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const authService = new SupabaseAuthService();
 
+export function SidebarThemeToggle({ collapsed }: { collapsed: boolean }) {
+  const [theme, setTheme] = React.useState<"light" | "dark" | "system">("light");
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    const saved = (localStorage.getItem("theme") as "light" | "dark" | "system") || "light";
+    setTheme(saved);
+    applyTheme(saved);
+  }, []);
+
+  const applyTheme = (t: "light" | "dark" | "system") => {
+    if (typeof window === "undefined") return;
+    const root = document.documentElement;
+    if (t === "dark") {
+      root.classList.add("dark");
+    } else if (t === "light") {
+      root.classList.remove("dark");
+    } else if (t === "system") {
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (isDark) root.classList.add("dark");
+      else root.classList.remove("dark");
+    }
+  };
+
+  const handleSelectTheme = (newTheme: "light" | "dark" | "system") => {
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    applyTheme(newTheme);
+  };
+
+  const getThemeIcon = () => {
+    if (theme === "dark") return <Moon className="h-4 w-4 text-blue-400 shrink-0" />;
+    if (theme === "system") return <Laptop className="h-4 w-4 text-muted-foreground shrink-0" />;
+    return <Sun className="h-4 w-4 text-amber-500 shrink-0" />;
+  };
+
+  const getThemeLabel = () => {
+    if (theme === "dark") return "Dark Theme";
+    if (theme === "system") return "System Theme";
+    return "Light Theme";
+  };
+
+  if (!mounted) {
+    return (
+      <div className="h-8 rounded-md bg-muted/40 animate-pulse" />
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="w-full">
+        {collapsed ? (
+          <div
+            title={getThemeLabel()}
+            className="flex items-center justify-center px-0 py-2 text-xs font-medium text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600 dark:hover:bg-blue-500/20 dark:hover:text-blue-400 rounded-md transition-colors cursor-pointer"
+          >
+            {getThemeIcon()}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between w-full px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600 dark:hover:bg-blue-500/20 dark:hover:text-blue-400 rounded-md transition-colors cursor-pointer">
+            <div className="flex items-center gap-3 truncate min-w-0">
+              {getThemeIcon()}
+              <span className="truncate">{getThemeLabel()}</span>
+            </div>
+            <ChevronDown className="h-3.5 w-3.5 opacity-60 shrink-0" />
+          </div>
+        )}
+      </DropdownMenuTrigger>
+        <DropdownMenuContent align={collapsed ? "center" : "start"} className="w-48 bottom-full mb-2 -mt-1">
+          <DropdownMenuItem
+            onClick={() => handleSelectTheme("light")}
+            className="flex items-center justify-between text-xs cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-amber-500" />
+              <span>Light Theme</span>
+            </div>
+            {theme === "light" && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => handleSelectTheme("dark")}
+            className="flex items-center justify-between text-xs cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Moon className="h-4 w-4 text-blue-400" />
+              <span>Dark Theme</span>
+            </div>
+            {theme === "dark" && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => handleSelectTheme("system")}
+            className="flex items-center justify-between text-xs cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <Laptop className="h-4 w-4 text-muted-foreground" />
+              <span>System Theme</span>
+            </div>
+            {theme === "system" && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
 export const USER_NAV_ITEMS: NavLinkItem[] = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Submit Project", href: "/dashboard/submit", icon: FilePlus },
   { label: "Browse Projects", href: "/dashboard/projects", icon: FolderKanban },
   { label: "Browse Theses", href: "/dashboard/theses", icon: BookOpen },
   { label: "Saved Records", href: "/dashboard/saved", icon: Bookmark },
@@ -109,7 +228,7 @@ export function DashboardSidebar({ mode }: DashboardSidebarProps) {
         >
           <img
             src="/Repository Assets/LOGO-REPO.png"
-            alt="Final Year Repo Logo"
+            alt="Project HUB Logo"
             className="h-6 w-auto object-contain flex-shrink-0"
           />
           {!collapsed && (
@@ -148,8 +267,8 @@ export function DashboardSidebar({ mode }: DashboardSidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-md transition-colors",
                 isActive
-                  ? "bg-primary text-primary-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  ? "bg-blue-600 text-white font-semibold shadow-sm"
+                  : "text-muted-foreground hover:bg-blue-600/10 hover:text-blue-600 dark:hover:bg-blue-500/20 dark:hover:text-blue-400",
                 collapsed && "justify-center px-0"
               )}
             >
@@ -158,6 +277,11 @@ export function DashboardSidebar({ mode }: DashboardSidebarProps) {
             </Link>
           );
         })}
+      </div>
+
+      {/* Pinned Theme Toggle at bottom of sidebar before profile footer */}
+      <div className="p-2 shrink-0">
+        <SidebarThemeToggle collapsed={collapsed} />
       </div>
 
       {/* Sidebar Footer with User Profile & Logout Button */}

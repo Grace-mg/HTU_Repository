@@ -41,7 +41,16 @@ export class SupabaseRepositoryService {
       .select("*, faculties(name), departments(name), categories(name)", { count: "exact" });
 
     if (filters.query) {
-      query = query.or(`title.ilike.%${filters.query}%,abstract.ilike.%${filters.query}%,student_name.ilike.%${filters.query}%`);
+      const q = filters.query.trim();
+      if (q) {
+        query = query.or(
+          `title.ilike.%${q}%,abstract.ilike.%${q}%,student_name.ilike.%${q}%,supervisor_name.ilike.%${q}%`
+        );
+      }
+    }
+
+    if (filters.keyword) {
+      query = query.contains("keywords", [filters.keyword]);
     }
 
     if (filters.recordType) {
@@ -51,8 +60,8 @@ export class SupabaseRepositoryService {
     if (filters.status) {
       query = query.eq("status", filters.status);
     } else {
-      // Default to PUBLISHED records for public queries unless explicitly overridden
-      query = query.eq("status", "PUBLISHED");
+      // Default to PUBLISHED and APPROVED records for public queries
+      query = query.in("status", ["PUBLISHED", "APPROVED"]);
     }
 
     if (filters.facultyId) {
@@ -76,7 +85,21 @@ export class SupabaseRepositoryService {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    query = query.order("created_at", { ascending: false }).range(from, to);
+    // Apply dynamic sorting options
+    const sortBy = filters.sortBy || "newest";
+    if (sortBy === "oldest") {
+      query = query.order("created_at", { ascending: true });
+    } else if (sortBy === "title_asc") {
+      query = query.order("title", { ascending: true });
+    } else if (sortBy === "title_desc") {
+      query = query.order("title", { ascending: false });
+    } else if (sortBy === "views") {
+      query = query.order("views_count", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
+
+    query = query.range(from, to);
 
     const { data, count, error } = await query;
 
@@ -124,6 +147,58 @@ export class SupabaseRepositoryService {
     if (data) {
       await this.client.from("repository_records").update({ downloads_count: (data.downloads_count || 0) + 1 }).eq("id", id);
     }
+  }
+
+  async getTopRecords(limit: number = 5): Promise<RepositoryRecord[]> {
+    const { data, error } = await this.client
+      .from("repository_records")
+      .select("*, faculties(name), departments(name), categories(name)")
+      .in("status", ["PUBLISHED", "APPROVED"])
+      .order("views_count", { ascending: false })
+      .limit(limit);
+
+    if (error || !data) return [];
+    return data.map(mapRowToRecord);
+  }
+
+  async getAnalyticsSummary(): Promise<{
+    totalRecords: number;
+    totalViews: number;
+    totalDownloads: number;
+    publishedProjects: number;
+    publishedTheses: number;
+  }> {
+    const { data, error } = await this.client
+      .from("repository_records")
+      .select("record_type, views_count, downloads_count, status");
+
+    if (error || !data) {
+      return {
+        totalRecords: 0,
+        totalViews: 0,
+        totalDownloads: 0,
+        publishedProjects: 0,
+        publishedTheses: 0,
+      };
+    }
+
+    const totalRecords = data.length;
+    const totalViews = data.reduce((acc, row) => acc + (row.views_count || 0), 0);
+    const totalDownloads = data.reduce((acc, row) => acc + (row.downloads_count || 0), 0);
+    const publishedProjects = data.filter(
+      (r) => r.record_type === "PROJECT" && (r.status === "PUBLISHED" || r.status === "APPROVED")
+    ).length;
+    const publishedTheses = data.filter(
+      (r) => r.record_type === "THESIS" && (r.status === "PUBLISHED" || r.status === "APPROVED")
+    ).length;
+
+    return {
+      totalRecords,
+      totalViews,
+      totalDownloads,
+      publishedProjects,
+      publishedTheses,
+    };
   }
 }
 

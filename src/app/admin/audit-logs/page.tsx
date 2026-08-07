@@ -73,7 +73,7 @@ export default function AdminAuditLogsPage() {
 
       return matchesSearch && matchesAction;
     });
-  }, [searchQuery, actionFilter]);
+  }, [logs, searchQuery, actionFilter]);
 
   const handleExportCSV = () => {
     setExportNotice("Security Audit Trail logs exported to CSV.");

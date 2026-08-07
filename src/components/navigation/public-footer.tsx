@@ -6,13 +6,12 @@ function BrandLogoLarge() {
     <div className="flex items-center gap-3">
       <img
         src="/Repository Assets/LOGO-REPO.png"
-        alt="Final Year Repo Logo"
-        className="h-14 w-auto object-contain flex-shrink-0"
+        alt="Project HUB Logo"
+        className="h-10 w-auto object-contain flex-shrink-0"
       />
-      <div className="flex flex-col text-xl font-extrabold text-foreground leading-tight">
-        <span>Final Year</span>
-        <span>Repo</span>
-      </div>
+      <span className="text-xl font-extrabold text-foreground tracking-tight whitespace-nowrap">
+        Project <span className="text-blue-600">HUB</span>
+      </span>
     </div>
   );
 }
@@ -119,7 +118,7 @@ export function PublicFooter() {
         {/* Bottom copyright */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
           <p className="text-xs text-muted-foreground">
-            ©{new Date().getFullYear()}, Final Year Project Repository
+            ©{new Date().getFullYear()}, Project HUB Repository
           </p>
         </div>
       </div>

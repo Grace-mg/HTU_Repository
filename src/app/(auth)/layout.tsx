@@ -18,7 +18,7 @@ export default function AuthLayout({
           >
             <img
               src="/Repository Assets/LOGO-REPO.png"
-              alt="Final Year Repo Logo"
+              alt="Project HUB Logo"
               className="h-10 w-auto object-contain flex-shrink-0"
             />
             <span>PROJECT-HUB</span>

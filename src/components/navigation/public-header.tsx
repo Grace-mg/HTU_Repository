@@ -3,12 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, Sun, Moon, Laptop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MobileNavDrawer, NavLinkItem } from "@/components/navigation/mobile-nav-drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-const PUBLIC_NAV_LINKS: NavLinkItem[] = [
+export const PUBLIC_NAV_LINKS: NavLinkItem[] = [
   { label: "Home", href: "/" },
   { label: "Browse", href: "/browse" },
   { label: "About", href: "/about" },
@@ -20,15 +26,60 @@ function BrandLogo() {
     <div className="flex items-center gap-2.5">
       <img
         src="/Repository Assets/LOGO-REPO.png"
-        alt="Final Year Repo Logo"
+        alt="Project HUB Logo"
         className="h-9 w-auto object-contain flex-shrink-0"
       />
-      {/* Brand Text */}
-      <div className="flex flex-col text-left leading-tight font-extrabold text-foreground text-sm tracking-tight">
-        <span>Final Year</span>
-        <span>Repo</span>
-      </div>
+      {/* Horizontal Brand Text */}
+      <span className="text-base font-extrabold text-foreground tracking-tight whitespace-nowrap">
+        Project <span className="text-blue-600">HUB</span>
+      </span>
     </div>
+  );
+}
+
+function HeaderThemeToggle() {
+  const [theme, setTheme] = React.useState<"light" | "dark" | "system">("system");
+
+  React.useEffect(() => {
+    const savedTheme = (localStorage.getItem("theme") as "light" | "dark" | "system") || "system";
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
+  }, []);
+
+  const applyTheme = (newTheme: "light" | "dark" | "system") => {
+    const root = document.documentElement;
+    const isSystemDark =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if (newTheme === "dark" || (newTheme === "system" && isSystemDark)) {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  };
+
+  const handleToggleTheme = () => {
+    const nextTheme: "light" | "dark" | "system" =
+      theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    applyTheme(nextTheme);
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleToggleTheme}
+      className="h-9 w-9 rounded-full cursor-pointer hover:bg-accent transition-colors"
+      title={`Current theme: ${theme}. Click to switch theme.`}
+    >
+      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-foreground" />
+      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-foreground" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   );
 }
 
@@ -38,15 +89,15 @@ export function PublicHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur-md transition-all">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
             <BrandLogo />
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* Desktop Navigation Links with Expanded Margins & Display Font */}
+          <nav className="hidden md:flex items-center space-x-12 lg:space-x-16">
             {PUBLIC_NAV_LINKS.map((link) => {
               const isActive =
                 link.href === "/"
@@ -58,10 +109,10 @@ export function PublicHeader() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "text-sm font-semibold transition-colors hover:text-blue-600",
+                    "text-xs font-bold tracking-widest uppercase transition-all duration-200 hover:text-blue-600 hover:scale-105",
                     isActive
-                      ? "text-blue-600 font-bold"
-                      : "text-foreground/80"
+                      ? "text-blue-600 font-extrabold"
+                      : "text-foreground/75"
                   )}
                 >
                   {link.label}
@@ -70,12 +121,14 @@ export function PublicHeader() {
             })}
           </nav>
 
-          {/* Right Action Button (Sign Up) */}
-          <div className="flex items-center gap-4">
+          {/* Right Action Area (Sign Up & Theme Toggle) */}
+          <div className="flex items-center gap-3">
+            <HeaderThemeToggle />
+
             <div className="hidden sm:flex items-center">
               <Link
                 href="/register"
-                className="inline-flex items-center justify-center rounded-md border-2 border-blue-600 px-6 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                className="inline-flex items-center justify-center rounded-full border-2 border-blue-600 px-6 py-2 text-xs font-bold tracking-wider uppercase text-blue-600 transition-all duration-200 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
               >
                 Sign Up
               </Link>
@@ -85,11 +138,11 @@ export function PublicHeader() {
             <Button
               variant="outline"
               size="icon"
-              className="md:hidden h-9 w-9"
+              className="md:hidden h-8 w-8"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -99,7 +152,7 @@ export function PublicHeader() {
       <MobileNavDrawer
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
-        title="Final Year Repo"
+        title="Project HUB"
         links={[
           ...PUBLIC_NAV_LINKS,
           { label: "Log in", href: "/login" },

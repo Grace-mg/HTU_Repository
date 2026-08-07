@@ -6,48 +6,45 @@ import { Button } from "@/components/ui/button";
 /* ─────────────────────── Hero Section ─────────────────────── */
 function HeroSection() {
   return (
-    <section className="relative w-full min-h-[520px] md:min-h-[620px] flex items-center justify-center overflow-hidden">
-      {/* Background image */}
-      <img
-        src="/Repository Assets/Investment not only needs finance but also people with the right skills_ A pilot project, Vocational, Education and Training (VET) Toolbox 2, will support to develop skills in eleven sub-Saharan African countries.jpg"
-        alt="Final Year Project Showcase Background"
-        className="absolute inset-0 h-full w-full object-cover object-center"
-      />
-      {/* Dark gradient overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-slate-900/60" />
-
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:px-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-1.5 text-xs font-semibold text-blue-300 backdrop-blur-md mb-6">
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>Official University Project Showcase 2026</span>
-        </div>
-        <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-          Final Year Project{" "}
-          <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-amber-300">
-            Repository
-          </span>
+    <section className="relative w-full bg-background text-foreground py-16 sm:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden transition-colors">
+      {/* Centered Written Content First */}
+      <div className="relative z-10 mx-auto max-w-4xl text-center">
+        <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
+          Final Year Project Repository
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-200 sm:text-lg md:text-xl">
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl">
           Software builds, engineering prototypes, and fashion collections
           from this year&apos;s graduating class reviewed and approved by
           department heads, open for anyone to browse.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button asChild size="lg" className="min-w-[180px] gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md px-8 py-3 text-sm font-semibold shadow-lg shadow-blue-600/30">
-            <Link href="/browse">
-              Explore the Archive
-            </Link>
+          <Button
+            asChild
+            size="lg"
+            className="min-w-[180px] bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 py-3 text-xs font-bold tracking-wider uppercase shadow-lg shadow-blue-600/30"
+          >
+            <Link href="/login">Sign In</Link>
           </Button>
           <Button
             asChild
             variant="outline"
             size="lg"
-            className="min-w-[180px] gap-2 border-white/80 bg-white/10 text-white hover:bg-white/20 hover:text-white rounded-md px-8 py-3 text-sm font-semibold backdrop-blur-sm"
+            className="min-w-[180px] border border-slate-200/80 dark:border-white/20 bg-white/40 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/20 rounded-full px-8 py-3 text-xs font-bold tracking-wider uppercase transition-all shadow-sm"
           >
-            <Link href="#how-it-works">
-              How it works
-            </Link>
+            <Link href="/browse">Explore the Archive</Link>
           </Button>
+        </div>
+      </div>
+
+      {/* Feature Showcase Image Below Written Content */}
+      <div className="mt-12 sm:mt-16 max-w-5xl mx-auto relative group z-10">
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-blue-600 to-amber-500 opacity-20 blur-xl group-hover:opacity-30 transition duration-500" />
+        <div className="relative rounded-2xl sm:rounded-3xl border border-border bg-card overflow-hidden shadow-2xl">
+          <img
+            src="/Repository Assets/hero-image.png"
+            alt="Project HUB Hero Showcase"
+            className="w-full h-auto object-cover max-h-[550px] sm:max-h-[650px]"
+          />
         </div>
       </div>
     </section>
@@ -272,29 +269,32 @@ function RecentlyUploadedSection() {
   );
 }
 
-/* ─────────────── Statistics Banner Section ─────────────── */
-function StatisticsBannerSection() {
+/* ─────────────── CTA Section (Final Year Student & Stats) ─────────────── */
+function CTASection() {
   const stats = [
     { label: "Faculties Represented", value: "5" },
     { label: "Current showcase year", value: "2026" },
   ];
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section className="relative w-full min-h-[480px] sm:min-h-[560px] md:min-h-[620px] flex items-center justify-center overflow-hidden py-16 sm:py-20">
       {/* Background image */}
       <img
-        src="/Repository Assets/Futuristic Smart Building.jpg"
-        alt="Campus & Innovation Center"
+        src="/Repository Assets/EWURAMA on TikTok.jpg"
+        alt="Graduating Students Showcase"
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
-      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px]" />
+      {/* Dark overlay for contrast */}
+      <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-[1px]" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-20 lg:px-8">
-        <div className="flex flex-wrap items-center justify-center gap-12 sm:gap-20">
+      {/* Content written directly on top of the image */}
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-12 px-4 sm:px-6 lg:px-8">
+        {/* Two Round Stat Cards (Left Aligned to match text) */}
+        <div className="flex flex-wrap items-start justify-start gap-12 sm:gap-20 pb-4 w-full">
           {stats.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center text-center">
-              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white/20 border-2 border-white/40 backdrop-blur-md shadow-2xl mb-3">
-                <span className="text-3xl font-extrabold text-white sm:text-4xl">
+            <div key={stat.label} className="flex flex-col items-center sm:items-start text-center sm:text-left">
+              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white/15 border-2 border-white/30 backdrop-blur-md shadow-2xl mb-3 transition-transform hover:scale-105">
+                <span className="text-3xl font-black text-white sm:text-4xl">
                   {stat.value}
                 </span>
               </div>
@@ -304,42 +304,25 @@ function StatisticsBannerSection() {
             </div>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
 
-/* ─────────────── CTA Section (Final Year Student) ─────────────── */
-function CTASection() {
-  return (
-    <section className="relative w-full overflow-hidden">
-      {/* Background image */}
-      <img
-        src="/Repository Assets/EWURAMA on TikTok.jpg"
-        alt="Graduating Students Showcase"
-        className="absolute inset-0 h-full w-full object-cover object-center"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/90 to-slate-900/75" />
-
-      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-16 sm:px-6 md:flex-row md:items-center md:py-20 lg:px-8">
-        <div className="max-w-xl">
-          <h2 className="text-2xl font-bold text-white sm:text-3xl md:text-4xl">
-            Are you final year student?
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-slate-300 sm:text-base">
-            Talk to your department admin or HOD to get your project reviewed
-            and added to this year&apos;s showcase.
-          </p>
-        </div>
-        <Button
-          asChild
-          size="lg"
-          className="min-w-[180px] rounded-md bg-amber-500 hover:bg-amber-600 text-white font-semibold px-8 py-3 text-sm shadow-lg shadow-amber-500/20"
-        >
-          <Link href="/login">
-            Sign In as HOD
+        {/* Action Row */}
+        <div className="flex w-full flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+          <div className="max-w-2xl space-y-3">
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl md:text-5xl tracking-tight drop-shadow-md">
+              Are you final year student?
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-100 sm:text-base md:text-lg drop-shadow">
+              Talk to your department admin or HOD to get your project reviewed
+              and added to this year&apos;s showcase.
+            </p>
+          </div>
+          <Link
+            href="/contact"
+            className="inline-flex items-center justify-center rounded-full border-2 border-blue-600 bg-blue-600/20 px-8 py-3.5 text-xs font-bold tracking-wider uppercase text-white transition-all duration-200 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+          >
+            Contact Us
           </Link>
-        </Button>
+        </div>
       </div>
     </section>
   );
@@ -416,7 +399,6 @@ export default function HomePage() {
       <HeroSection />
       <BrowseByDepartmentsSection />
       <RecentlyUploadedSection />
-      <StatisticsBannerSection />
       <HowItWorksSection />
       <CTASection />
     </>
