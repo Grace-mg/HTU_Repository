@@ -7,6 +7,8 @@ import { AccountMenu } from "@/components/navigation/account-menu";
 import { MobileNavDrawer } from "@/components/navigation/mobile-nav-drawer";
 import { USER_NAV_ITEMS, ADMIN_NAV_ITEMS } from "@/components/navigation/dashboard-sidebar";
 
+import { ThemeToggle } from "@/components/theme-toggle";
+
 export interface DashboardTopbarProps {
   mode: "user" | "admin";
   userEmail?: string;
@@ -36,9 +38,15 @@ export function DashboardTopbar({ mode, userEmail }: DashboardTopbarProps) {
           </span>
         </div>
 
-        {/* Right: Account Menu */}
-        <div className="flex items-center gap-3">
-          <AccountMenu userEmail={userEmail} userRole={mode} />
+        {/* Right: Theme Toggle on Mobile, Full Account Menu on Desktop */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="sm:hidden flex items-center">
+            <ThemeToggle />
+          </div>
+
+          <div className="hidden sm:flex items-center">
+            <AccountMenu userEmail={userEmail} userRole={mode} />
+          </div>
         </div>
       </header>
 
