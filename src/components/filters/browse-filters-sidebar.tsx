@@ -5,7 +5,7 @@ import { Filter, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RecordType } from "@/types/repository";
-import { HTU_FACULTIES, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
+import { HTU_FACULTIES, HTU_CATEGORIES, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
 
 export interface FilterOption {
   id: string;
@@ -19,12 +19,11 @@ export interface BrowseFiltersSidebarProps {
   selectedYear?: string;
   selectedCategory?: string;
   faculties?: FilterOption[];
-  departments?: FilterOption[];
   categories?: FilterOption[];
   years?: string[];
   hideRecordTypeFilter?: boolean;
   onFilterChange: (filters: {
-    recordType?: string;
+    recordType?: RecordType;
     facultyId?: string;
     departmentId?: string;
     academicYear?: string;
@@ -40,12 +39,7 @@ export function BrowseFiltersSidebar({
   selectedYear = "all",
   selectedCategory = "all",
   faculties = HTU_FACULTIES,
-  categories = [
-    { id: "cat-1", name: "Software & Web Apps" },
-    { id: "cat-2", name: "Hardware & IoT Prototypes" },
-    { id: "cat-3", name: "Fashion & Textile Design" },
-    { id: "cat-4", name: "Research & Analytical Theses" },
-  ],
+  categories = HTU_CATEGORIES,
   years = ["2026", "2025", "2024", "2023", "2022"],
   hideRecordTypeFilter = false,
   onFilterChange,
@@ -83,7 +77,7 @@ export function BrowseFiltersSidebar({
           <Select
             value={recordType || "all"}
             onValueChange={(val) =>
-              onFilterChange({ recordType: val === "all" ? undefined : val })
+              onFilterChange({ recordType: val === "all" ? undefined : (val as RecordType) })
             }
           >
             <SelectTrigger className="h-9 text-xs">

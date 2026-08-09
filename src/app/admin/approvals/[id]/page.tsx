@@ -19,52 +19,84 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
+import { adminService } from "@/services/supabase-admin-service";
+import { RepositoryRecord } from "@/types/repository";
 import { ApprovalStage } from "@/types/approval";
 
-export default function ApprovalDetailPage({ params }: { params: { id: string } }) {
-  const [currentStage, setCurrentStage] = React.useState<ApprovalStage>("PENDING_HOD");
-  const [feedback, setFeedback] = React.useState("");
-  const [notice, setNotice] = React.useState<string | null>(null);
+import { downloadProjectPDF } from "@/lib/utils/download";
 
-  const approvalItem = {
-    id: params.id || "req-101",
-    title: "AI-Powered Microgrid Solar Optimization for Rural Clinics",
-    studentName: "Kwame Asante",
-    studentId: "0420261234",
-    supervisorName: "Dr. Seth Mensah",
-    supervisorEmail: "smensah@university.edu",
-    departmentName: "Electrical Engineering",
-    facultyName: "Faculty of Engineering",
-    recordType: "PROJECT",
-    submittedAt: "2026-08-04T09:15:00Z",
-    abstract: `This project presents an automated microgrid solar energy optimization framework designed specifically for off-grid rural healthcare facilities. Utilizing IoT edge sensor telemetry combined with lightweight machine learning algorithms, the system dynamically balances battery storage load and solar generation to eliminate power outages during medical procedures.`,
-    fileName: "Kwame_Asante_Solar_Microgrid.pdf",
-    fileSize: 4200000,
+export default function ApprovalDetailPage({ params }: { params: { id: string } }) {
+  const [record, setRecord] = React.useState<RepositoryRecord | null>(null);
+  const [currentStage, setCurrentStage] = React.useState<ApprovalStage>("PENDING_HOD");
+  const [notice, setNotice] = React.useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  React.useEffect(() => {
+    async function loadRecord() {
+      if (!params.id) return;
+      const data = await adminService.getRecordById(params.id);
+      if (data) {
+        setRecord(data);
+        setCurrentStage((data.status as ApprovalStage) || "PENDING_HOD");
+      }
+    }
+    loadRecord();
+  }, [params.id]);
+
+  const handleAction = async (nextStage: ApprovalStage, message: string) => {
+    if (!params.id) return;
+    setIsUpdating(true);
+    const targetStatus = nextStage === "APPROVED" ? "PUBLISHED" : nextStage;
+    const ok = await adminService.updateRecordStatus(params.id, targetStatus as any);
+    setIsUpdating(false);
+    if (ok) {
+      setCurrentStage(nextStage);
+      setNotice(message);
+    }
   };
+
+  const approvalItem = record
+    ? {
+        id: record.id,
+        title: record.title,
+        studentName: record.studentName,
+        studentId: record.studentId || "N/A",
+        supervisorName: record.supervisorName,
+        supervisorEmail: `${record.supervisorName.toLowerCase().replace(/[^a-z]/g, "")}@htu.edu.gh`,
+        departmentName: record.departmentName || "Department",
+        facultyName: record.facultyName || "Faculty",
+        recordType: record.recordType,
+        submittedAt: record.createdAt ? new Date(record.createdAt).toLocaleString() : "N/A",
+        abstract: record.abstract,
+        fileName: record.fileName || `${record.studentName.replace(/\s+/g, "_")}_Submission.pdf`,
+        fileSize: record.fileSize || 2048000,
+      }
+    : {
+        id: params.id || "req-101",
+        title: "Record Not Found",
+        studentName: "N/A",
+        studentId: "N/A",
+        supervisorName: "N/A",
+        supervisorEmail: "n/a@htu.edu.gh",
+        departmentName: "N/A",
+        facultyName: "N/A",
+        recordType: "PROJECT",
+        submittedAt: "N/A",
+        abstract: "The requested project submission record could not be loaded.",
+        fileName: "submission.pdf",
+        fileSize: 0,
+      };
 
   const auditLogs = [
     {
       id: "log-1",
       stage: "DRAFT",
       action: "SUBMITTED",
-      actorName: "Kwame Asante (Student)",
-      timestamp: "2026-08-04T09:15:00Z",
+      actorName: `${approvalItem.studentName} (Student)`,
+      timestamp: approvalItem.submittedAt,
       comment: "Initial project submission uploaded for supervisor & HOD review.",
     },
-    {
-      id: "log-2",
-      stage: "PENDING_HOD",
-      action: "REVIEW_IN_PROGRESS",
-      actorName: "Dr. Seth Mensah (Supervisor)",
-      timestamp: "2026-08-04T11:30:00Z",
-      comment: "Approved by supervisor. Forwarded to HOD for departmental endorsement.",
-    },
   ];
-
-  const handleAction = (nextStage: ApprovalStage, message: string) => {
-    setCurrentStage(nextStage);
-    setNotice(message);
-  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -92,15 +124,17 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
         <div className="flex items-center gap-2 shrink-0">
           <Button
             type="button"
+            disabled={isUpdating || currentStage === "APPROVED"}
             onClick={() => handleAction("APPROVED", "Submission approved successfully!")}
             className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-9 px-4 gap-1.5"
           >
-            <CheckCircle2 className="h-4 w-4" /> Approve Record
+            <CheckCircle2 className="h-4 w-4" /> {isUpdating ? "Updating..." : "Approve Record"}
           </Button>
 
           <Button
             type="button"
             variant="destructive"
+            disabled={isUpdating || currentStage === "REJECTED"}
             onClick={() => handleAction("REJECTED", "Submission rejected.")}
             className="text-xs font-semibold h-9 px-4 gap-1.5"
           >
@@ -125,7 +159,7 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
           </div>
           <div>
             <span className="text-muted-foreground block font-medium">Supervisor</span>
-            <span className="font-semibold text-foreground">{approvalItem.supervisorName} ({approvalItem.supervisorEmail})</span>
+            <span className="font-semibold text-foreground">{approvalItem.supervisorName}</span>
           </div>
           <div>
             <span className="text-muted-foreground block font-medium">Department & Faculty</span>
@@ -142,6 +176,28 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
           <p className="text-xs text-muted-foreground leading-relaxed">{approvalItem.abstract}</p>
         </div>
 
+        {/* Group Members Section */}
+        {record?.groupMembers && record.groupMembers.length > 0 && (
+          <div className="border-t border-border pt-4 space-y-3">
+            <h2 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              Project Team & Group Members ({record.groupMembers.length + 1} Total)
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 p-2.5">
+                <span className="font-bold text-foreground block">{approvalItem.studentName} (Lead Student)</span>
+                <span className="text-[11px] text-muted-foreground block">ID: {approvalItem.studentId}</span>
+              </div>
+              {record.groupMembers.map((member, idx) => (
+                <div key={member.email + idx} className="rounded-lg border border-border bg-muted/40 p-2.5">
+                  <span className="font-bold text-foreground block">{member.name}</span>
+                  <span className="text-[11px] text-blue-600 dark:text-blue-400 block">{member.email}</span>
+                  {member.studentId && <span className="text-[10px] text-muted-foreground block">ID: {member.studentId}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Attached File Inspection Card */}
         <div className="border-t border-border pt-4">
           <h2 className="text-xs font-bold text-foreground mb-3">Attached Document</h2>
@@ -150,11 +206,31 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
               <FileText className="h-8 w-8 text-blue-600 shrink-0" />
               <div>
                 <div className="text-xs font-bold text-foreground">{approvalItem.fileName}</div>
-                <div className="text-[11px] text-muted-foreground">PDF Document • 4.2 MB</div>
+                <div className="text-[11px] text-muted-foreground">PDF Document • {(approvalItem.fileSize / (1024 * 1024)).toFixed(1)} MB</div>
               </div>
             </div>
 
-            <Button variant="outline" size="sm" className="text-xs font-semibold gap-1.5 h-8">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                downloadProjectPDF({
+                  title: approvalItem.title,
+                  studentName: approvalItem.studentName,
+                  studentId: approvalItem.studentId,
+                  supervisorName: approvalItem.supervisorName,
+                  departmentName: approvalItem.departmentName,
+                  facultyName: approvalItem.facultyName,
+                  recordType: approvalItem.recordType,
+                  abstract: approvalItem.abstract,
+                  groupMembers: record?.groupMembers,
+                  fileName: approvalItem.fileName,
+                  fileUrl: record?.fileUrl,
+                })
+              }
+              className="text-xs font-semibold gap-1.5 h-8 hover:bg-blue-50 dark:hover:bg-blue-950/30 text-blue-600 border-blue-200 dark:border-blue-800"
+            >
               <Download className="h-3.5 w-3.5" /> Download PDF
             </Button>
           </div>

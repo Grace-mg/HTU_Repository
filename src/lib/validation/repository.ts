@@ -1,7 +1,25 @@
 import { z } from "zod";
 
 export const recordTypeEnum = z.enum(["PROJECT", "THESIS"]);
-export const recordStatusEnum = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "PENDING_REVIEW"]);
+export const recordStatusEnum = z.enum([
+  "DRAFT",
+  "PENDING_HOD",
+  "PENDING_DEAN",
+  "APPROVED",
+  "PUBLISHED",
+  "REJECTED",
+  "ARCHIVED",
+  "PENDING_REVIEW",
+]);
+
+export const groupMemberSchema = z.object({
+  userId: z.string().optional(),
+  name: z.string().trim().min(1, "Member name is required"),
+  email: z.string().trim().email("Invalid email address"),
+  studentId: z.string().trim().optional(),
+});
+
+export type GroupMemberInput = z.infer<typeof groupMemberSchema>;
 
 export const createRepositoryRecordSchema = z.object({
   title: z.string().trim().min(3, "Title must be at least 3 characters").max(300, "Title is too long"),
@@ -10,6 +28,7 @@ export const createRepositoryRecordSchema = z.object({
   abstract: z.string().trim().min(20, "Abstract must be at least 20 characters"),
   studentName: z.string().trim().min(2, "Student name is required"),
   studentId: z.string().trim().optional(),
+  groupMembers: z.array(groupMemberSchema).optional(),
   supervisorName: z.string().trim().min(2, "Supervisor name is required"),
   academicYear: z
     .number({ invalid_type_error: "Academic year must be a number" })

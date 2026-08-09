@@ -61,3 +61,18 @@ export function getDepartmentsByFaculty(facultyId: string): DepartmentOption[] {
   if (!facultyId || facultyId === "all") return HTU_DEPARTMENTS;
   return HTU_DEPARTMENTS.filter((d) => d.facultyId === facultyId);
 }
+
+export interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
+export const HTU_CATEGORIES: CategoryOption[] = [
+  { id: "software", name: "Software & Web Apps", slug: "software-web-apps", description: "Web platforms, mobile apps, and enterprise software." },
+  { id: "hardware", name: "Hardware & IoT Prototypes", slug: "hardware-iot-prototypes", description: "Microcontrollers, solar telemetry, and IoT sensors." },
+  { id: "fashion", name: "Fashion & Textile Design", slug: "fashion-textile-design", description: "Sustainable textiles, apparel design, and pattern drafting." },
+  { id: "thesis", name: "Research & Analytical Theses", slug: "research-analytical-theses", description: "Academic research dissertations and statistical papers." },
+];
+

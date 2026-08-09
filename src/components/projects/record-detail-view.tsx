@@ -127,6 +127,14 @@ export function RecordDetailView({
               mimeType={record.mimeType || "application/pdf"}
               fileUrl={record.fileUrl}
               recordTitle={record.title}
+              studentName={record.studentName}
+              studentId={record.studentId}
+              supervisorName={record.supervisorName}
+              departmentName={record.departmentName}
+              facultyName={record.facultyName}
+              academicYear={record.academicYear}
+              recordType={record.recordType}
+              abstract={record.abstract}
             />
           </div>
 

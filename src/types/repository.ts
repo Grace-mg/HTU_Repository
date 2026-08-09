@@ -12,6 +12,13 @@ export type RecordStatus =
   | "APPROVED"
   | "REJECTED";
 
+export interface GroupMember {
+  userId?: string;
+  name: string;
+  email: string;
+  studentId?: string;
+}
+
 export interface RepositoryRecord {
   id: string;
   title: string;
@@ -21,6 +28,7 @@ export interface RepositoryRecord {
   abstract: string;
   studentName: string;
   studentId?: string;
+  groupMembers?: GroupMember[];
   supervisorName: string;
   academicYear: number;
   facultyId: string;

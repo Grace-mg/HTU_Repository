@@ -53,14 +53,52 @@ async function main() {
 
   // 2. Seed Departments
   const departments = [
+    // FAST
     { id: "cs", faculty_id: "fast", name: "Computer Science", code: "CS", hod_name: "Dr. Emmanuel Addo", hod_email: "eaddo@htu.edu.gh", is_active: true },
+    { id: "htm", faculty_id: "fast", name: "Hospitality & Tourism Management", code: "HTM", is_active: true },
+    { id: "math", faculty_id: "fast", name: "Mathematics & Statistics", code: "STATS", is_active: true },
+    { id: "food", faculty_id: "fast", name: "Food Technology", code: "FOOD", is_active: true },
+    { id: "it", faculty_id: "fast", name: "Information Technology", code: "IT", is_active: true },
+    // ENG
     { id: "agric", faculty_id: "eng", name: "Agricultural Engineering", code: "AGRIC", hod_name: "Dr. Seth Mensah", hod_email: "smensah@htu.edu.gh", is_active: true },
-    { id: "electrical", faculty_id: "eng", name: "Electrical & Electronic Engineering", code: "EEE", hod_name: "Ing. Francis Kpodo", hod_email: "fkpodo@htu.edu.gh", is_active: true },
+    { id: "civil", faculty_id: "eng", name: "Civil Engineering", code: "CIVIL", is_active: true },
+    { id: "eee", faculty_id: "eng", name: "Electrical & Electronic Engineering", code: "EEE", hod_name: "Ing. Francis Kpodo", hod_email: "fkpodo@htu.edu.gh", is_active: true },
+    { id: "electrical", faculty_id: "eng", name: "Electrical & Electronic Engineering", code: "EE", is_active: true },
+    { id: "mech", faculty_id: "eng", name: "Mechanical Engineering", code: "MECH", is_active: true },
+    { id: "auto", faculty_id: "eng", name: "Automotive Engineering", code: "AUTO", is_active: true },
+    // HBS
+    { id: "acc", faculty_id: "hbs", name: "Accountancy", code: "ACC", is_active: true },
+    { id: "bf", faculty_id: "hbs", name: "Banking & Finance", code: "BF", is_active: true },
+    { id: "mkt", faculty_id: "hbs", name: "Marketing", code: "MKT", is_active: true },
+    { id: "sms", faculty_id: "hbs", name: "Secretaryship & Management Studies", code: "SMS", is_active: true },
+    { id: "psm", faculty_id: "hbs", name: "Procurement & Supply Chain Management", code: "PSM", is_active: true },
+    // ART
     { id: "fashion", faculty_id: "art", name: "Fashion Design & Textiles", code: "FDT", hod_name: "Mrs. Joyce Amankwah", hod_email: "jamankwah@htu.edu.gh", is_active: true },
+    { id: "fdt", faculty_id: "art", name: "Fashion Design & Textiles", code: "FDTT", is_active: true },
+    { id: "ia", faculty_id: "art", name: "Industrial Art", code: "IA", is_active: true },
+    { id: "gd", faculty_id: "art", name: "Graphic Design & Advertising", code: "GD", is_active: true },
+    // BNE
+    { id: "bt", faculty_id: "bne", name: "Building Technology", code: "BT", is_active: true },
+    { id: "em", faculty_id: "bne", name: "Estate Management", code: "EM", is_active: true },
+    { id: "sm", faculty_id: "bne", name: "Surveying & Mapping", code: "SM", is_active: true },
+    // FASS
+    { id: "msls", faculty_id: "fass", name: "Multilingual Secretarial & Language Studies", code: "MSLS", is_active: true },
+    { id: "ls", faculty_id: "fass", name: "Liberal Studies & General Studies", code: "LS", is_active: true },
   ];
 
   for (const dept of departments) {
-    await supabase.from("departments").upsert(dept, { onConflict: "id" });
+    await supabase.from("departments").upsert(
+      {
+        id: dept.id,
+        faculty_id: dept.faculty_id,
+        name: dept.name,
+        code: dept.code,
+        hod_name: dept.hod_name || null,
+        hod_email: dept.hod_email || null,
+        is_active: dept.is_active,
+      },
+      { onConflict: "id" }
+    );
   }
   console.log("✓ Departments seeded successfully.");
 

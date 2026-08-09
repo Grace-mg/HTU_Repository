@@ -1,7 +1,8 @@
 import * as React from "react";
-import { Download, FileText, Lock, FileCode, CheckCircle2 } from "lucide-react";
+import { Download, FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { downloadProjectPDF } from "@/lib/utils/download";
 
 export interface RecordFileCardProps extends React.HTMLAttributes<HTMLDivElement> {
   fileName?: string;
@@ -9,6 +10,14 @@ export interface RecordFileCardProps extends React.HTMLAttributes<HTMLDivElement
   mimeType?: string;
   fileUrl?: string;
   recordTitle: string;
+  studentName?: string;
+  studentId?: string;
+  supervisorName?: string;
+  departmentName?: string;
+  facultyName?: string;
+  academicYear?: number;
+  recordType?: string;
+  abstract?: string;
 }
 
 export function RecordFileCard({
@@ -17,6 +26,14 @@ export function RecordFileCard({
   mimeType = "application/pdf",
   fileUrl,
   recordTitle,
+  studentName,
+  studentId,
+  supervisorName,
+  departmentName,
+  facultyName,
+  academicYear,
+  recordType,
+  abstract,
   className,
   ...props
 }: RecordFileCardProps) {
@@ -27,6 +44,22 @@ export function RecordFileCard({
     if (fileSize < 1024 * 1024) return `${(fileSize / 1024).toFixed(1)} KB`;
     return `${(fileSize / (1024 * 1024)).toFixed(1)} MB`;
   }, [fileSize]);
+
+  const handleDownload = () => {
+    downloadProjectPDF({
+      title: recordTitle,
+      studentName: studentName || "Student",
+      studentId,
+      supervisorName: supervisorName || "Academic Supervisor",
+      departmentName,
+      facultyName,
+      academicYear,
+      recordType,
+      abstract: abstract || "Official project submission documentation.",
+      fileUrl,
+      fileName,
+    });
+  };
 
   return (
     <div
@@ -57,26 +90,14 @@ export function RecordFileCard({
           <span>HOD Approved File</span>
         </div>
 
-        {fileUrl ? (
-          <Button
-            asChild
-            size="sm"
-            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4"
-          >
-            <a href={fileUrl} download={fileName} target="_blank" rel="noopener noreferrer">
-              <Download className="h-3.5 w-3.5" /> Download Document
-            </a>
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => alert("File download will be active when storage provider is connected.")}
-            className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4"
-          >
-            <Download className="h-3.5 w-3.5" /> Download Document
-          </Button>
-        )}
+        <Button
+          type="button"
+          size="sm"
+          onClick={handleDownload}
+          className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4"
+        >
+          <Download className="h-3.5 w-3.5" /> Download Document
+        </Button>
       </div>
     </div>
   );

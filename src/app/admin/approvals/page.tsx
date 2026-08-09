@@ -37,20 +37,20 @@ export default function AdminApprovalsPage() {
       setLoading(true);
       const pendingRecords = await adminService.getPendingApprovals();
       if (pendingRecords) {
-        const mappedItems: ApprovalItem[] = pendingRecords.map((r, idx) => ({
-          id: `req-${100 + idx}`,
+        const mappedItems: ApprovalItem[] = pendingRecords.map((r) => ({
+          id: r.id,
           recordId: r.id,
           title: r.title,
           studentName: r.studentName,
           studentId: r.studentId || "N/A",
           supervisorName: r.supervisorName,
-          departmentName: r.departmentName || "Engineering",
-          facultyName: r.facultyName || "Faculty of Engineering",
+          departmentName: r.departmentName || "Department",
+          facultyName: r.facultyName || "Faculty",
           recordType: r.recordType,
           currentStage: (r.status as ApprovalStage) || "PENDING_HOD",
           submittedAt: r.createdAt,
           abstract: r.abstract,
-          fileName: r.fileName || "submission.pdf",
+          fileName: r.fileName || `${r.studentName.replace(/\s+/g, "_")}_Submission.pdf`,
           fileSize: r.fileSize || 1024,
         }));
         setItems(mappedItems);

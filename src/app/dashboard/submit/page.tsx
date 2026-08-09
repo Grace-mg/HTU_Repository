@@ -13,27 +13,25 @@ import {
   ShieldCheck,
   X,
   Plus,
+  Users,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createRepositoryRecordSchema, CreateRepositoryRecordInput } from "@/lib/validation/repository";
+import { createRepositoryRecordSchema, CreateRepositoryRecordInput, GroupMemberInput } from "@/lib/validation/repository";
 import { adminService } from "@/services/supabase-admin-service";
 import { SupabaseAuthService } from "@/services/supabase-auth-service";
-import { HTU_FACULTIES, HTU_DEPARTMENTS, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
+import { HTU_FACULTIES, HTU_DEPARTMENTS, HTU_CATEGORIES, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
 
 const authService = new SupabaseAuthService();
 
 export default function StudentSubmitProjectPage() {
   const router = useRouter();
 
-  const [categories, setCategories] = React.useState<any[]>([
-    { id: "cat-1", name: "Software & Web Apps" },
-    { id: "cat-2", name: "Hardware & IoT Prototypes" },
-    { id: "cat-3", name: "Fashion & Textile Design" },
-    { id: "cat-4", name: "Research & Analytical Theses" },
-  ]);
+  const [categories, setCategories] = React.useState<any[]>(HTU_CATEGORIES);
 
   const [formData, setFormData] = React.useState<CreateRepositoryRecordInput>({
     title: "",
@@ -46,7 +44,7 @@ export default function StudentSubmitProjectPage() {
     academicYear: new Date().getFullYear(),
     facultyId: "fast",
     departmentId: "cs",
-    categoryId: "cat-1",
+    categoryId: "software",
     keywords: ["Final Year", "Student Project"],
   });
 
@@ -67,7 +65,13 @@ export default function StudentSubmitProjectPage() {
         }));
       }
       const cats = await adminService.getCategories();
-      if (cats && cats.length > 0) setCategories(cats);
+      if (cats && cats.length > 0) {
+        setCategories(cats);
+        setFormData((prev) => ({
+          ...prev,
+          categoryId: cats.some((c: any) => c.id === prev.categoryId) ? prev.categoryId : cats[0].id,
+        }));
+      }
     }
     loadUserData();
   }, []);
@@ -121,13 +125,84 @@ export default function StudentSubmitProjectPage() {
     }
   };
 
+  const [groupMembers, setGroupMembers] = React.useState<GroupMemberInput[]>([]);
+  const [memberSearchQuery, setMemberSearchQuery] = React.useState("");
+  const [searchResults, setSearchResults] = React.useState<any[]>([]);
+  const [isSearching, setIsSearching] = React.useState(false);
+  const [showDropdown, setShowDropdown] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!memberSearchQuery.trim() || memberSearchQuery.length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(memberSearchQuery)}`);
+        if (res.ok) {
+          const json = await res.json();
+          setSearchResults(json.users || []);
+          setShowDropdown(true);
+        }
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [memberSearchQuery]);
+
+  const handleSelectMember = (user: any) => {
+    if (groupMembers.some((m) => m.email.toLowerCase() === user.email.toLowerCase())) {
+      setMemberSearchQuery("");
+      setShowDropdown(false);
+      return;
+    }
+
+    const newMember: GroupMemberInput = {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      studentId: user.studentId || "",
+    };
+
+    setGroupMembers((prev) => [...prev, newMember]);
+    setMemberSearchQuery("");
+    setShowDropdown(false);
+  };
+
+  const handleAddManualEmail = () => {
+    if (!memberSearchQuery.includes("@")) return;
+    if (groupMembers.some((m) => m.email.toLowerCase() === memberSearchQuery.toLowerCase())) return;
+
+    const newMember: GroupMemberInput = {
+      name: memberSearchQuery.split("@")[0],
+      email: memberSearchQuery.trim(),
+      studentId: "",
+    };
+
+    setGroupMembers((prev) => [...prev, newMember]);
+    setMemberSearchQuery("");
+    setShowDropdown(false);
+  };
+
+  const handleRemoveMember = (emailToRemove: string) => {
+    setGroupMembers((prev) => prev.filter((m) => m.email !== emailToRemove));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     setSuccess(false);
 
     // Validate using Zod schema
-    const result = createRepositoryRecordSchema.safeParse(formData);
+    const fullData = { ...formData, groupMembers };
+    const result = createRepositoryRecordSchema.safeParse(fullData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -144,7 +219,8 @@ export default function StudentSubmitProjectPage() {
     // Student submissions enter as PENDING_HOD for supervisor / HOD approval queue
     const submissionData: CreateRepositoryRecordInput = {
       ...formData,
-      status: "DRAFT",
+      groupMembers,
+      status: "PENDING_HOD",
     };
 
     const created = await adminService.createRecord(submissionData);
@@ -154,7 +230,7 @@ export default function StudentSubmitProjectPage() {
       setSuccess(true);
       setTimeout(() => router.push("/dashboard/projects"), 1500);
     } else {
-      setErrors({ form: "Failed to submit project. Please try again." });
+      setErrors({ form: "Failed to submit project. Please verify all fields and try again." });
     }
   };
 
@@ -302,6 +378,106 @@ export default function StudentSubmitProjectPage() {
               className="text-xs h-9"
             />
           </div>
+        </div>
+
+        {/* Group Project Members / Co-Authors Lookup Section */}
+        <div className="space-y-3 rounded-lg border border-border/80 bg-muted/30 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Users className="h-4 w-4 text-blue-600" /> Select Group Members / Co-Authors
+              </h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Search and add fellow students registered on the platform who collaborated on this project.
+              </p>
+            </div>
+            <Badge variant="outline" className="text-[10px] font-semibold text-blue-600 border-blue-200">
+              {groupMembers.length} Added
+            </Badge>
+          </div>
+
+          <div className="relative">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search student by registered email or full name..."
+                  value={memberSearchQuery}
+                  onChange={(e) => setMemberSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    if (searchResults.length > 0) setShowDropdown(true);
+                  }}
+                  className="pl-9 text-xs h-9"
+                />
+              </div>
+
+              {memberSearchQuery.includes("@") && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleAddManualEmail}
+                  className="text-xs h-9 px-3 gap-1 shrink-0"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add Email
+                </Button>
+              )}
+            </div>
+
+            {/* Live Search Suggestions Dropdown */}
+            {showDropdown && searchResults.length > 0 && (
+              <div className="absolute z-20 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-lg">
+                {searchResults.map((user) => (
+                  <button
+                    key={user.id}
+                    type="button"
+                    onClick={() => handleSelectMember(user)}
+                    className="w-full text-left px-3 py-2 rounded text-xs hover:bg-accent flex items-center justify-between transition-colors"
+                  >
+                    <div>
+                      <div className="font-semibold text-foreground">{user.name}</div>
+                      <div className="text-[11px] text-muted-foreground">{user.email}</div>
+                    </div>
+                    {user.studentId && (
+                      <span className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                        {user.studentId}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Selected Group Members Chips/Cards */}
+          {groupMembers.length > 0 && (
+            <div className="space-y-2 pt-2 border-t border-border/60">
+              <span className="text-[11px] font-semibold text-muted-foreground">Added Team Members:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {groupMembers.map((member, idx) => (
+                  <div
+                    key={member.email + idx}
+                    className="flex items-center justify-between rounded-md border border-border bg-card p-2.5 text-xs shadow-xs"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <div className="font-bold text-foreground truncate">{member.name}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">{member.email}</div>
+                      {member.studentId && (
+                        <div className="text-[10px] text-blue-600 font-mono">ID: {member.studentId}</div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMember(member.email)}
+                      className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Supervisor Name */}

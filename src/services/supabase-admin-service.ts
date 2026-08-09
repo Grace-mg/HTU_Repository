@@ -15,6 +15,18 @@ export class SupabaseAdminService {
   private client = createBrowserClient();
 
   async getAdminStats(): Promise<AdminStats> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/stats");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.stats) return json.stats;
+        }
+      } catch (err) {
+        console.warn("[supabase-admin-service] /api/admin/stats fetch failed, attempting client fallback", err);
+      }
+    }
+
     try {
       const { count: totalRecords } = await this.client
         .from("repository_records")
@@ -47,6 +59,18 @@ export class SupabaseAdminService {
   }
 
   async getAllRecords(): Promise<RepositoryRecord[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/records");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.records) return json.records.map(mapRowToRecord);
+        }
+      } catch (err) {
+        console.warn("[supabase-admin-service] /api/admin/records fetch failed, attempting client fallback", err);
+      }
+    }
+
     const { data, error } = await this.client
       .from("repository_records")
       .select("*, faculties(name), departments(name), categories(name)")
@@ -57,6 +81,18 @@ export class SupabaseAdminService {
   }
 
   async getPendingApprovals(): Promise<RepositoryRecord[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/records?pending=true");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.records) return json.records.map(mapRowToRecord);
+        }
+      } catch (err) {
+        console.warn("[supabase-admin-service] /api/admin/records?pending=true fetch failed, attempting client fallback", err);
+      }
+    }
+
     const { data, error } = await this.client
       .from("repository_records")
       .select("*, faculties(name), departments(name), categories(name)")
@@ -67,7 +103,48 @@ export class SupabaseAdminService {
     return data.map(mapRowToRecord);
   }
 
+  async getRecordById(id: string): Promise<RepositoryRecord | null> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch(`/api/admin/records/${encodeURIComponent(id)}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.record) return mapRowToRecord(json.record);
+        }
+      } catch (err) {
+        console.warn("[supabase-admin-service] /api/admin/records/[id] GET failed, attempting client fallback", err);
+      }
+    }
+
+    const { data, error } = await this.client
+      .from("repository_records")
+      .select("*, faculties(name), departments(name), categories(name)")
+      .eq("id", id)
+      .single();
+
+    if (error || !data) return null;
+    return mapRowToRecord(data);
+  }
+
   async createRecord(input: CreateRepositoryRecordInput): Promise<RepositoryRecord | null> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/records", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.record) {
+            return mapRowToRecord(json.record);
+          }
+        }
+      } catch (err) {
+        console.warn("[supabase-admin-service] /api/records fetch failed, attempting client insert fallback", err);
+      }
+    }
+
     const slug = input.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now();
     const rowData: any = {
       title: input.title,
@@ -95,11 +172,28 @@ export class SupabaseAdminService {
       .select("*, faculties(name), departments(name), categories(name)")
       .single();
 
+    if (error) {
+      console.error("[supabase-admin-service] createRecord error:", error.message, error.details, error);
+    }
+
     if (error || !data) return null;
     return mapRowToRecord(data);
   }
 
   async updateRecordStatus(id: string, status: RecordStatus): Promise<boolean> {
+    try {
+      const res = await fetch(`/api/admin/records/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        return true;
+      }
+    } catch (err) {
+      console.warn("[supabase-admin-service] /api/admin/records/[id] PATCH failed, attempting client fallback", err);
+    }
+
     const updateData: any = { status };
     if (status === "PUBLISHED") {
       updateData.published_at = new Date().toISOString();

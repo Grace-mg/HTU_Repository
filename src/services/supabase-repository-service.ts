@@ -11,6 +11,11 @@ export function mapRowToRecord(row: any): RepositoryRecord {
     abstract: row.abstract,
     studentName: row.student_name,
     studentId: row.student_id || undefined,
+    groupMembers: Array.isArray(row.group_members)
+      ? row.group_members
+      : typeof row.group_members === "string"
+      ? JSON.parse(row.group_members)
+      : [],
     supervisorName: row.supervisor_name,
     academicYear: row.academic_year,
     facultyId: row.faculty_id,

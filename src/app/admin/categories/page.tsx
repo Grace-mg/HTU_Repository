@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { adminService } from "@/services/supabase-admin-service";
+import { HTU_CATEGORIES } from "@/lib/constants/faculties-departments";
 
 export default function AdminCategoriesPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -20,12 +21,12 @@ export default function AdminCategoriesPage() {
   const [catName, setCatName] = React.useState("");
   const [catDesc, setCatDesc] = React.useState("");
 
-  const [categories, setCategories] = React.useState<any[]>([
-    { id: "cat-1", name: "Software & Web Apps", slug: "software-web-apps", description: "Web platforms, mobile apps, and enterprise software.", recordCount: 0 },
-    { id: "cat-2", name: "Hardware & IoT Prototypes", slug: "hardware-iot-prototypes", description: "Microcontrollers, solar telemetry, and IoT sensors.", recordCount: 0 },
-    { id: "cat-3", name: "Fashion & Textile Design", slug: "fashion-textile-design", description: "Sustainable textiles, apparel design, and pattern drafting.", recordCount: 0 },
-    { id: "cat-4", name: "Research & Analytical Theses", slug: "research-analytical-theses", description: "Academic research dissertations and statistical papers.", recordCount: 0 },
-  ]);
+  const [categories, setCategories] = React.useState<any[]>(
+    HTU_CATEGORIES.map((c) => ({
+      ...c,
+      recordCount: 0,
+    }))
+  );
 
   React.useEffect(() => {
     async function loadCategories() {

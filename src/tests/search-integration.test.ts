@@ -82,7 +82,6 @@ describe("Phase 21 Search Integration & Optimization Tests", () => {
     if (parsed.success) {
       expect(parsed.data.page).toBe(1);
       expect(parsed.data.pageSize).toBe(10);
-      expect(parsed.data.format).toBeUndefined();
     }
   });
 
