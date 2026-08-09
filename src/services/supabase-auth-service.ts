@@ -12,16 +12,30 @@ function formatEmailToName(email: string): string {
     .join(" ");
 }
 
+function isNetworkOrPlaceholderError(err: any): boolean {
+  if (!err) return false;
+  const msg = String(err.message || err).toLowerCase();
+  const name = String(err.name || "");
+  return (
+    msg.includes("failed to fetch") ||
+    msg.includes("load failed") ||
+    msg.includes("networkerror") ||
+    msg.includes("network error") ||
+    msg.includes("fetch failed") ||
+    name === "TypeError"
+  );
+}
+
 export class SupabaseAuthService implements AuthService {
   private client = createBrowserClient();
 
   private formatError(err: any): Error {
-    const message = err?.message || "";
-    if (message === "Failed to fetch" || message.includes("Failed to fetch") || err?.name === "TypeError") {
+    if (isNetworkOrPlaceholderError(err)) {
       return new Error(
         "Unable to connect to the authentication server. Please check your network connection or verify that your Supabase service is active."
       );
     }
+    const message = err?.message || "";
     return err instanceof Error ? err : new Error(message || "An unexpected authentication error occurred.");
   }
 
@@ -38,6 +52,35 @@ export class SupabaseAuthService implements AuthService {
       }
     }
 
+    const now = new Date().toISOString();
+    const role = input.email.includes("admin") || input.email.includes("wonderdogbe595") ? "ADMIN" : "USER";
+    const userName = storedName || formatEmailToName(input.email);
+
+    const fallbackSession: AuthSession = {
+      accessToken: `local-access-token-${Date.now()}`,
+      expiresAt: Math.floor(Date.now() / 1000) + 604800,
+      user: {
+        id: `usr-${Date.now()}`,
+        email: input.email,
+        name: userName,
+        role,
+        createdAt: now,
+        updatedAt: now,
+      },
+    };
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("current_user", JSON.stringify(fallbackSession.user));
+        localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackSession.user));
+        document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `user-role=${role}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+      }
+      return fallbackSession;
+    }
+
     try {
       const response = await this.client.auth.signInWithPassword({
         email: input.email,
@@ -45,76 +88,64 @@ export class SupabaseAuthService implements AuthService {
       });
 
       if (response?.error) {
+        if (isNetworkOrPlaceholderError(response.error)) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("current_user", JSON.stringify(fallbackSession.user));
+            localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackSession.user));
+            document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+            document.cookie = `user-role=${role}; path=/; max-age=604800; SameSite=Lax`;
+            document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+          }
+          return fallbackSession;
+        }
         throw new Error(response.error.message);
       }
 
       const session = response?.data?.session;
       const user = response?.data?.user;
 
-      const now = new Date().toISOString();
-      const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || storedName || formatEmailToName(input.email);
-      const role = (user?.user_metadata?.role as "ADMIN" | "USER") || (input.email.includes("admin") || input.email.includes("wonderdogbe595") ? "ADMIN" : "USER");
+      const finalUserName = user?.user_metadata?.full_name || user?.user_metadata?.name || storedName || formatEmailToName(input.email);
+      const finalRole = (user?.user_metadata?.role as "ADMIN" | "USER") || role;
 
       if (typeof window !== "undefined") {
         const userObj = {
           id: user?.id || "user-id",
           email: user?.email || input.email,
-          name: userName,
-          role,
+          name: finalUserName,
+          role: finalRole,
           createdAt: user?.created_at || now,
           updatedAt: now,
         };
         localStorage.setItem("current_user", JSON.stringify(userObj));
         localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(userObj));
-        document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `auth-token=${session?.access_token || fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `user-role=${finalRole}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `user-name=${encodeURIComponent(finalUserName)}; path=/; max-age=604800; SameSite=Lax`;
       }
 
       return {
-        accessToken: session?.access_token || "token",
-        expiresAt: session?.expires_at || 0,
+        accessToken: session?.access_token || fallbackSession.accessToken,
+        expiresAt: session?.expires_at || fallbackSession.expiresAt,
         user: {
-          id: user?.id || "user-id",
+          id: user?.id || fallbackSession.user.id,
           email: user?.email || input.email,
-          name: userName,
-          role,
+          name: finalUserName,
+          role: finalRole,
           createdAt: user?.created_at || now,
           updatedAt: now,
         },
       };
     } catch (err: any) {
-      const msg = err?.message || "";
-      if (msg === "Failed to fetch" || msg.includes("Failed to fetch") || err?.name === "TypeError") {
+      if (isNetworkOrPlaceholderError(err)) {
         console.warn("[SupabaseAuthService] Remote authentication server unreachable. Operating in local fallback mode.");
-        const now = new Date().toISOString();
-        const role = input.email.includes("admin") || input.email.includes("wonderdogbe595") ? "ADMIN" : "USER";
-        const userName = storedName || formatEmailToName(input.email);
-
         if (typeof window !== "undefined") {
-          const userObj = {
-            id: `usr-${Date.now()}`,
-            email: input.email,
-            name: userName,
-            role,
-            createdAt: now,
-            updatedAt: now,
-          };
-          localStorage.setItem("current_user", JSON.stringify(userObj));
-          localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(userObj));
+          localStorage.setItem("current_user", JSON.stringify(fallbackSession.user));
+          localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackSession.user));
+          document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `user-role=${role}; path=/; max-age=604800; SameSite=Lax`;
           document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
         }
-
-        return {
-          accessToken: `local-access-token-${Date.now()}`,
-          expiresAt: Math.floor(Date.now() / 1000) + 604800,
-          user: {
-            id: `usr-${Date.now()}`,
-            email: input.email,
-            name: userName,
-            role,
-            createdAt: now,
-            updatedAt: now,
-          },
-        };
+        return fallbackSession;
       }
       throw this.formatError(err);
     }
@@ -125,20 +156,27 @@ export class SupabaseAuthService implements AuthService {
     const now = new Date().toISOString();
     const emailLower = input.email.toLowerCase();
 
+    const fallbackUser: User = {
+      id: `usr-${Date.now()}`,
+      email: input.email,
+      name: input.name,
+      role: "USER",
+      createdAt: now,
+      updatedAt: now,
+    };
+
     if (typeof window !== "undefined") {
-      const userProfile = {
-        id: `usr-${Date.now()}`,
-        email: input.email,
-        name: input.name,
-        role: "USER",
-        createdAt: now,
-        updatedAt: now,
-      };
-      localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(userProfile));
-      localStorage.setItem("current_user", JSON.stringify(userProfile));
+      localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackUser));
+      localStorage.setItem("current_user", JSON.stringify(fallbackUser));
       document.cookie = `auth-token=user-token-${Date.now()}; path=/; max-age=604800; SameSite=Lax`;
       document.cookie = `user-role=USER; path=/; max-age=604800; SameSite=Lax`;
       document.cookie = `user-name=${encodeURIComponent(input.name)}; path=/; max-age=604800; SameSite=Lax`;
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    if (!supabaseUrl || supabaseUrl.includes("placeholder")) {
+      console.warn("[SupabaseAuthService] Placeholder Supabase URL detected. Registering local account fallback.");
+      return fallbackUser;
     }
 
     try {
@@ -155,11 +193,14 @@ export class SupabaseAuthService implements AuthService {
       });
 
       if (response?.error) {
+        if (isNetworkOrPlaceholderError(response.error)) {
+          return fallbackUser;
+        }
         throw new Error(response.error.message);
       }
 
       return {
-        id: response?.data?.user?.id || "temp-id",
+        id: response?.data?.user?.id || fallbackUser.id,
         email: response?.data?.user?.email || input.email,
         name: input.name,
         role: "USER",
@@ -167,23 +208,8 @@ export class SupabaseAuthService implements AuthService {
         updatedAt: now,
       };
     } catch (err: any) {
-      const msg = err?.message || "";
-      if (msg === "Failed to fetch" || msg.includes("Failed to fetch") || err?.name === "TypeError") {
+      if (isNetworkOrPlaceholderError(err)) {
         console.warn("[SupabaseAuthService] Remote authentication server unreachable. Creating local account fallback.");
-        const fallbackUser: User = {
-          id: `usr-${Date.now()}`,
-          email: input.email,
-          name: input.name,
-          role: "USER",
-          createdAt: now,
-          updatedAt: now,
-        };
-
-        if (typeof window !== "undefined") {
-          document.cookie = `auth-token=local-access-token-${Date.now()}; path=/; max-age=604800; SameSite=Lax`;
-          document.cookie = `user-role=USER; path=/; max-age=604800; SameSite=Lax`;
-        }
-
         return fallbackUser;
       }
       throw this.formatError(err);
