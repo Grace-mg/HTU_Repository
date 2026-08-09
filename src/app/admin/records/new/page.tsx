@@ -10,17 +10,12 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createRepositoryRecordSchema, CreateRepositoryRecordInput } from "@/lib/validation/repository";
 import { adminService } from "@/services/supabase-admin-service";
-import { HTU_FACULTIES, HTU_DEPARTMENTS, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
+import { HTU_FACULTIES, HTU_DEPARTMENTS, HTU_CATEGORIES, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
 
 export default function AddNewRecordPage() {
   const router = useRouter();
 
-  const [categories, setCategories] = React.useState<any[]>([
-    { id: "cat-1", name: "Software & Web Apps" },
-    { id: "cat-2", name: "Hardware & IoT Prototypes" },
-    { id: "cat-3", name: "Fashion & Textile Design" },
-    { id: "cat-4", name: "Research & Analytical Theses" },
-  ]);
+  const [categories, setCategories] = React.useState<any[]>(HTU_CATEGORIES);
 
   const [formData, setFormData] = React.useState<CreateRepositoryRecordInput>({
     title: "",
@@ -33,7 +28,7 @@ export default function AddNewRecordPage() {
     academicYear: 2026,
     facultyId: "fast",
     departmentId: "cs",
-    categoryId: "cat-1",
+    categoryId: "software",
     keywords: ["Academic", "Project"],
   });
 
