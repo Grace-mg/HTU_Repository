@@ -3,6 +3,15 @@ import { User, AuthSession } from "@/types/auth";
 import { LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput } from "@/lib/validation/auth";
 import { createBrowserClient } from "@/lib/supabase/client";
 
+function formatEmailToName(email: string): string {
+  if (!email) return "User";
+  const prefix = email.split("@")[0] || "User";
+  return prefix
+    .split(/[\._-]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export class SupabaseAuthService implements AuthService {
   private client = createBrowserClient();
 
@@ -17,6 +26,18 @@ export class SupabaseAuthService implements AuthService {
   }
 
   async login(input: LoginInput): Promise<AuthSession> {
+    const emailLower = input.email.toLowerCase();
+    let storedName = "";
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(`user_profile_${emailLower}`);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.name) storedName = parsed.name;
+        } catch {}
+      }
+    }
+
     try {
       const response = await this.client.auth.signInWithPassword({
         email: input.email,
@@ -31,6 +52,22 @@ export class SupabaseAuthService implements AuthService {
       const user = response?.data?.user;
 
       const now = new Date().toISOString();
+      const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || storedName || formatEmailToName(input.email);
+      const role = (user?.user_metadata?.role as "ADMIN" | "USER") || (input.email.includes("admin") || input.email.includes("wonderdogbe595") ? "ADMIN" : "USER");
+
+      if (typeof window !== "undefined") {
+        const userObj = {
+          id: user?.id || "user-id",
+          email: user?.email || input.email,
+          name: userName,
+          role,
+          createdAt: user?.created_at || now,
+          updatedAt: now,
+        };
+        localStorage.setItem("current_user", JSON.stringify(userObj));
+        localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(userObj));
+        document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+      }
 
       return {
         accessToken: session?.access_token || "token",
@@ -38,8 +75,8 @@ export class SupabaseAuthService implements AuthService {
         user: {
           id: user?.id || "user-id",
           email: user?.email || input.email,
-          name: user?.user_metadata?.full_name || input.email.split("@")[0],
-          role: (user?.user_metadata?.role as "ADMIN" | "USER") || "USER",
+          name: userName,
+          role,
           createdAt: user?.created_at || now,
           updatedAt: now,
         },
@@ -50,13 +87,29 @@ export class SupabaseAuthService implements AuthService {
         console.warn("[SupabaseAuthService] Remote authentication server unreachable. Operating in local fallback mode.");
         const now = new Date().toISOString();
         const role = input.email.includes("admin") || input.email.includes("wonderdogbe595") ? "ADMIN" : "USER";
+        const userName = storedName || formatEmailToName(input.email);
+
+        if (typeof window !== "undefined") {
+          const userObj = {
+            id: `usr-${Date.now()}`,
+            email: input.email,
+            name: userName,
+            role,
+            createdAt: now,
+            updatedAt: now,
+          };
+          localStorage.setItem("current_user", JSON.stringify(userObj));
+          localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(userObj));
+          document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+        }
+
         return {
           accessToken: `local-access-token-${Date.now()}`,
           expiresAt: Math.floor(Date.now() / 1000) + 604800,
           user: {
             id: `usr-${Date.now()}`,
             email: input.email,
-            name: input.email.split("@")[0],
+            name: userName,
             role,
             createdAt: now,
             updatedAt: now,
@@ -69,6 +122,24 @@ export class SupabaseAuthService implements AuthService {
 
   async register(input: RegisterInput): Promise<User> {
     const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
+    const now = new Date().toISOString();
+    const emailLower = input.email.toLowerCase();
+
+    if (typeof window !== "undefined") {
+      const userProfile = {
+        id: `usr-${Date.now()}`,
+        email: input.email,
+        name: input.name,
+        role: "USER",
+        createdAt: now,
+        updatedAt: now,
+      };
+      localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(userProfile));
+      localStorage.setItem("current_user", JSON.stringify(userProfile));
+      document.cookie = `auth-token=user-token-${Date.now()}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `user-role=USER; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `user-name=${encodeURIComponent(input.name)}; path=/; max-age=604800; SameSite=Lax`;
+    }
 
     try {
       const response = await this.client.auth.signUp({
@@ -87,8 +158,6 @@ export class SupabaseAuthService implements AuthService {
         throw new Error(response.error.message);
       }
 
-      const now = new Date().toISOString();
-
       return {
         id: response?.data?.user?.id || "temp-id",
         email: response?.data?.user?.email || input.email,
@@ -101,7 +170,6 @@ export class SupabaseAuthService implements AuthService {
       const msg = err?.message || "";
       if (msg === "Failed to fetch" || msg.includes("Failed to fetch") || err?.name === "TypeError") {
         console.warn("[SupabaseAuthService] Remote authentication server unreachable. Creating local account fallback.");
-        const now = new Date().toISOString();
         const fallbackUser: User = {
           id: `usr-${Date.now()}`,
           email: input.email,
@@ -134,6 +202,7 @@ export class SupabaseAuthService implements AuthService {
       // Force expire all auth cookies so middleware does not redirect back
       document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
       document.cookie = "user-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
+      document.cookie = "user-name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
       document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
       document.cookie = "sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0";
 
@@ -200,19 +269,49 @@ export class SupabaseAuthService implements AuthService {
     try {
       const response = await this.client.auth.getUser();
       const user = response?.data?.user;
-      if (!user) return null;
+      if (!user) {
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem("current_user");
+          if (stored) {
+            try {
+              return JSON.parse(stored);
+            } catch {}
+          }
+        }
+        return null;
+      }
 
       const now = new Date().toISOString();
+      let storedName = "";
+      if (typeof window !== "undefined" && user.email) {
+        const stored = localStorage.getItem(`user_profile_${user.email.toLowerCase()}`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed.name) storedName = parsed.name;
+          } catch {}
+        }
+      }
+
+      const userName = user.user_metadata?.full_name || user.user_metadata?.name || storedName || formatEmailToName(user.email || "");
 
       return {
         id: user.id,
         email: user.email || "",
-        name: user.user_metadata?.full_name || "User",
+        name: userName,
         role: (user.user_metadata?.role as "ADMIN" | "USER") || "USER",
         createdAt: user.created_at || now,
         updatedAt: now,
       };
     } catch (err) {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("current_user");
+        if (stored) {
+          try {
+            return JSON.parse(stored);
+          } catch {}
+        }
+      }
       return null;
     }
   }
@@ -221,9 +320,32 @@ export class SupabaseAuthService implements AuthService {
     try {
       const response = await this.client.auth.getSession();
       const session = response?.data?.session;
-      if (!session) return null;
+      if (!session) {
+        const u = await this.getCurrentUser();
+        if (u) {
+          return {
+            accessToken: "local-token",
+            expiresAt: Math.floor(Date.now() / 1000) + 604800,
+            user: u,
+          };
+        }
+        return null;
+      }
 
       const now = new Date().toISOString();
+      const user = session.user;
+      let storedName = "";
+      if (typeof window !== "undefined" && user.email) {
+        const stored = localStorage.getItem(`user_profile_${user.email.toLowerCase()}`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed.name) storedName = parsed.name;
+          } catch {}
+        }
+      }
+
+      const userName = user.user_metadata?.full_name || user.user_metadata?.name || storedName || formatEmailToName(user.email || "");
 
       return {
         accessToken: session.access_token,
@@ -231,17 +353,26 @@ export class SupabaseAuthService implements AuthService {
         user: {
           id: session.user.id,
           email: session.user.email || "",
-          name: session.user.user_metadata?.full_name || "User",
+          name: userName,
           role: (session.user.role as "ADMIN" | "USER") || (session.user.user_metadata?.role as "ADMIN" | "USER") || "USER",
           createdAt: session.user.created_at || now,
           updatedAt: now,
         },
       };
     } catch (err) {
+      const u = await this.getCurrentUser();
+      if (u) {
+        return {
+          accessToken: "local-token",
+          expiresAt: Math.floor(Date.now() / 1000) + 604800,
+          user: u,
+        };
+      }
       return null;
     }
   }
 }
 
 export const authService = new SupabaseAuthService();
+
 

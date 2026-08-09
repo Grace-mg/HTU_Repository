@@ -34,6 +34,9 @@ export function AccountMenu({ userName, userEmail, userRole }: AccountMenuProps)
       }
     }
     loadUser();
+
+    window.addEventListener("storage", loadUser);
+    return () => window.removeEventListener("storage", loadUser);
   }, []);
 
   const handleLogout = async () => {

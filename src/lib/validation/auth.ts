@@ -9,7 +9,15 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 export const registerSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
-  email: z.string().trim().min(1, "Email is required").email("Invalid email address"),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Invalid email address")
+    .refine((email) => {
+      const domain = email.toLowerCase().split("@")[1] || "";
+      return domain === "htu.edu.gh" || domain.endsWith(".htu.edu.gh");
+    }, "Registration is strictly restricted to official HTU institutional email addresses (@htu.edu.gh)"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")

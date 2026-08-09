@@ -84,7 +84,7 @@ export function AdminInviteDialog({ open, onOpenChange, onSuccess }: AdminInvite
             <Shield className="h-4 w-4 text-purple-600" /> Invite Administrator by Email
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Send an official email invitation to grant administrative privileges to a faculty or staff member.
+            Send an official email invitation to grant administrative privileges using a personal or institutional email address.
           </DialogDescription>
         </DialogHeader>
 
@@ -112,12 +112,12 @@ export function AdminInviteDialog({ open, onOpenChange, onSuccess }: AdminInvite
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground block" htmlFor="email">
-              Candidate Email Address
+              Candidate Email Address (Personal or Institutional)
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="smensah@htu.edu.gh"
+              placeholder="administrator@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="text-xs h-9"

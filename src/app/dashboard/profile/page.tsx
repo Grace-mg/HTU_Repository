@@ -8,10 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageHeader } from "@/components/layout/page-header";
 import { profileUpdateSchema, ProfileUpdateInput } from "@/lib/validation/user";
 
+import { SupabaseAuthService } from "@/services/supabase-auth-service";
+
+const authService = new SupabaseAuthService();
+
 export default function ProfilePage() {
   const [formData, setFormData] = React.useState<ProfileUpdateInput>({
-    name: "System User",
-    email: "user@university.edu",
+    name: "",
+    email: "",
     facultyId: "fast",
     departmentId: "cs",
   });
@@ -19,6 +23,20 @@ export default function ProfilePage() {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    async function loadUser() {
+      const u = await authService.getCurrentUser();
+      if (u) {
+        setFormData((prev) => ({
+          ...prev,
+          name: u.name || prev.name,
+          email: u.email || prev.email,
+        }));
+      }
+    }
+    loadUser();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +57,18 @@ export default function ProfilePage() {
     }
 
     setIsSubmitting(true);
+    if (typeof window !== "undefined") {
+      const current = localStorage.getItem("current_user");
+      let currentObj = current ? JSON.parse(current) : {};
+      currentObj = { ...currentObj, name: formData.name, email: formData.email };
+      localStorage.setItem("current_user", JSON.stringify(currentObj));
+      if (formData.email) {
+        localStorage.setItem(`user_profile_${formData.email.toLowerCase()}`, JSON.stringify(currentObj));
+      }
+      document.cookie = `user-name=${encodeURIComponent(formData.name)}; path=/; max-age=604800; SameSite=Lax`;
+      window.dispatchEvent(new Event("storage"));
+    }
+
     setTimeout(() => {
       setIsSubmitting(false);
       setSuccessMessage("Profile information has been updated successfully.");

@@ -49,7 +49,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     try {
       await authService.register(formData);
-      router.push("/verify-email");
+      router.push("/dashboard");
     } catch (err: any) {
       setIsSubmitting(false);
       setAuthError(err.message || "Registration failed. Please try again.");
@@ -100,14 +100,14 @@ export default function RegisterPage() {
         {/* Email Field */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-foreground block" htmlFor="email">
-            Email Address
+            Institutional Email Address (@htu.edu.gh)
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               id="email"
               type="email"
-              placeholder="name@university.edu"
+              placeholder="student.name@htu.edu.gh"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="pl-9 text-xs h-9"

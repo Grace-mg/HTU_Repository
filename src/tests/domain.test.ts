@@ -18,19 +18,28 @@ describe("Phase 4 Domain Models & Validation Tests", () => {
     expect(invalid.success).toBe(false);
   });
 
-  it("validates registerSchema and enforces password matching", () => {
+  it("validates registerSchema and enforces @htu.edu.gh domain restriction", () => {
     const valid = registerSchema.safeParse({
       name: "John Doe",
-      email: "john@university.edu",
+      email: "john@htu.edu.gh",
       password: "Password123",
       confirmPassword: "Password123",
       terms: true,
     });
     expect(valid.success).toBe(true);
 
+    const nonHtuEmail = registerSchema.safeParse({
+      name: "John Doe",
+      email: "john@gmail.com",
+      password: "Password123",
+      confirmPassword: "Password123",
+      terms: true,
+    });
+    expect(nonHtuEmail.success).toBe(false);
+
     const mismatch = registerSchema.safeParse({
       name: "John Doe",
-      email: "john@university.edu",
+      email: "john@htu.edu.gh",
       password: "Password123",
       confirmPassword: "DifferentPassword123",
       terms: true,
@@ -39,7 +48,7 @@ describe("Phase 4 Domain Models & Validation Tests", () => {
 
     const noTerms = registerSchema.safeParse({
       name: "John Doe",
-      email: "john@university.edu",
+      email: "john@htu.edu.gh",
       password: "Password123",
       confirmPassword: "Password123",
       terms: false,
