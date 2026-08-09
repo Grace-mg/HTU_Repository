@@ -19,7 +19,7 @@ describe("Phase 17 Admin Analytics & Audit Logs Tests", () => {
     expect(screen.getByRole("heading", { name: /repository analytics & usage reports/i })).toBeInTheDocument();
     expect(screen.getByText("Total Record Views")).toBeInTheDocument();
     expect(screen.getByText("Most Viewed Records")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /export csv/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /export csv/i })).not.toBeInTheDocument();
   });
 
   it("renders Security Audit Logs page correctly", () => {

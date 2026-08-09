@@ -4,19 +4,15 @@ import * as React from "react";
 import {
   Download,
   Eye,
-  FileSpreadsheet,
   TrendingUp,
   Building2,
-  CheckCircle2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { adminService } from "@/services/supabase-admin-service";
 import { RepositoryRecord } from "@/types/repository";
 
 export default function AdminAnalyticsPage() {
-  const [exportNotice, setExportNotice] = React.useState<string | null>(null);
   const [records, setRecords] = React.useState<RepositoryRecord[]>([]);
   const [departments, setDepartments] = React.useState<any[]>([]);
 
@@ -46,48 +42,16 @@ export default function AdminAnalyticsPage() {
     return [...records].sort((a, b) => (b.downloadsCount || 0) - (a.downloadsCount || 0)).slice(0, 4);
   }, [records]);
 
-  const handleExport = (format: "CSV" | "JSON") => {
-    setExportNotice(`Repository Analytics Report generated in ${format} format.`);
-    setTimeout(() => setExportNotice(null), 3000);
-  };
-
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-5">
         <PageHeader
           title="Repository Analytics & Usage Reports"
-          description="Track live record views, download metrics, department submission distributions, and export system reports."
+          description="Track live record views, download metrics, and department submission distributions."
         />
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport("CSV")}
-            className="text-xs font-semibold gap-1.5 h-9"
-          >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Export CSV
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport("JSON")}
-            className="text-xs font-semibold gap-1.5 h-9"
-          >
-            <Download className="h-4 w-4 text-blue-600" /> Export JSON
-          </Button>
-        </div>
       </div>
 
-      {exportNotice && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-900 flex items-center gap-2.5">
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-          <span>{exportNotice}</span>
-        </div>
-      )}
 
       {/* Analytics Metric Highlights Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
