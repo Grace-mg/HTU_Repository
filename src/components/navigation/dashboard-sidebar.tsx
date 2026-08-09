@@ -287,23 +287,31 @@ export function DashboardSidebar({ mode }: DashboardSidebarProps) {
       {/* Sidebar Footer with User Profile & Logout Button */}
       <div className="p-3 border-t border-border bg-muted/30 flex items-center justify-between">
         {!collapsed ? (
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="h-8 w-8 rounded-full bg-blue-600/10 text-blue-600 font-bold flex items-center justify-center text-xs shrink-0 border border-blue-600/20">
+          <Link
+            href={mode === "admin" ? "/admin/profile" : "/dashboard/profile"}
+            className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity cursor-pointer group"
+            title="View Profile Settings"
+          >
+            <div className="h-8 w-8 rounded-full bg-blue-600/10 text-blue-600 font-bold flex items-center justify-center text-xs shrink-0 border border-blue-600/20 group-hover:bg-blue-600 group-hover:text-white transition-colors">
               {displayName[0]?.toUpperCase()}
             </div>
             <div className="flex flex-col truncate min-w-0">
-              <span className="font-bold text-xs text-foreground truncate">{displayName}</span>
+              <span className="font-bold text-xs text-foreground truncate group-hover:text-blue-600 transition-colors">{displayName}</span>
               <span className="text-[10px] text-muted-foreground capitalize font-medium">
                 {mode === "admin" ? "Administrator" : "Student Portal"}
               </span>
             </div>
-          </div>
+          </Link>
         ) : (
-          <div className="flex justify-center w-full">
+          <Link
+            href={mode === "admin" ? "/admin/profile" : "/dashboard/profile"}
+            className="flex justify-center w-full hover:opacity-80 transition-opacity cursor-pointer"
+            title="View Profile Settings"
+          >
             <div className="h-7 w-7 rounded-full bg-blue-600/10 text-blue-600 font-bold flex items-center justify-center text-[10px]">
               {displayName[0]?.toUpperCase()}
             </div>
-          </div>
+          </Link>
         )}
 
         {!collapsed && (

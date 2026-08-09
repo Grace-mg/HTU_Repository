@@ -134,37 +134,25 @@ export function MobileNavDrawer({
         <div className="border-t border-border pt-4 mt-6 space-y-3">
           {currentUser ? (
             <div className="rounded-xl border border-border bg-card p-3.5 space-y-3 shadow-sm">
-              <div className="flex items-center gap-3">
+              <Link
+                href={currentUser.role === "ADMIN" ? "/admin/profile" : "/dashboard/profile"}
+                onClick={onClose}
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+                title="View profile settings"
+              >
                 <div className="h-9 w-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-sm">
                   {displayName[0]?.toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-foreground truncate">{displayName}</p>
+                  <p className="text-xs font-bold text-foreground truncate hover:text-blue-600 transition-colors">
+                    {displayName}
+                  </p>
                   <p className="text-[11px] text-muted-foreground truncate">{currentUser.email}</p>
                   <span className="inline-block text-[9px] font-bold text-blue-600 uppercase tracking-wider mt-0.5">
                     {currentUser.role} Account
                   </span>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5 pt-1">
-                <Link
-                  href={currentUser.role === "ADMIN" ? "/admin/profile" : "/dashboard/profile"}
-                  onClick={onClose}
-                  className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold text-foreground bg-background border border-border rounded-md hover:bg-accent"
-                >
-                  <User className="h-3.5 w-3.5 text-muted-foreground" />
-                  Profile
-                </Link>
-                <Link
-                  href={currentUser.role === "ADMIN" ? "/admin/security" : "/dashboard/security"}
-                  onClick={onClose}
-                  className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold text-foreground bg-background border border-border rounded-md hover:bg-accent"
-                >
-                  <Shield className="h-3.5 w-3.5 text-muted-foreground" />
-                  Security
-                </Link>
-              </div>
+              </Link>
 
               <Button
                 type="button"
