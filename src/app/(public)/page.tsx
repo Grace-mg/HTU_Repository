@@ -210,7 +210,7 @@ function RecentlyUploadedSection() {
   ];
 
   return (
-    <section className="w-full bg-slate-50 dark:bg-slate-900/50 py-16 md:py-24 border-y border-border/60">
+    <section className="w-full bg-slate-50 dark:bg-muted/30 py-16 md:py-24 border-y border-border/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>

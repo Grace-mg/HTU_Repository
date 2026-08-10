@@ -49,7 +49,7 @@ export function RepositoryRecordCard({
       {...props}
     >
       {/* Top Preview Cover Image */}
-      <div className="h-44 sm:h-48 w-full overflow-hidden bg-slate-100 dark:bg-slate-800 border-b border-border/60 relative">
+      <div className="h-44 sm:h-48 w-full overflow-hidden bg-slate-100 dark:bg-muted border-b border-border/60 relative">
         <img
           src={getRecordCoverImage(record)}
           alt={record.title}
