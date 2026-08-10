@@ -20,7 +20,8 @@ export function DashboardTopbar({ mode, userEmail }: DashboardTopbarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm">
+      <header className="sticky top-0 z-30 flex w-full flex-col border-b border-border bg-background/95 backdrop-blur-sm pt-[env(safe-area-inset-top,0px)]">
+        <div className="flex h-14 w-full items-center justify-between px-4">
         {/* Left: Mobile menu toggle button */}
         <div className="flex items-center gap-3">
           <Button
@@ -48,6 +49,7 @@ export function DashboardTopbar({ mode, userEmail }: DashboardTopbarProps) {
             <AccountMenu userEmail={userEmail} userRole={mode} />
           </div>
         </div>
+      </div>
       </header>
 
       {/* Mobile drawer */}

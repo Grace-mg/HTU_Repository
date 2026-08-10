@@ -74,7 +74,7 @@ export function MobileNavDrawer({
       />
 
       {/* Panel */}
-      <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background border-r border-border p-5 shadow-xl flex flex-col justify-between overflow-y-auto">
+      <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background border-r border-border p-5 pt-[calc(1.25rem+env(safe-area-inset-top,0px))] pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] shadow-xl flex flex-col justify-between overflow-y-auto">
         <div className="space-y-4">
           {/* Drawer Top Header */}
           <div className="flex items-center justify-between border-b border-border pb-4">

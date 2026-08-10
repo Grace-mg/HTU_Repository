@@ -89,8 +89,8 @@ export function PublicHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur-md transition-all">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur-md transition-all pt-[env(safe-area-inset-top,0px)]">
+        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
             <BrandLogo />
