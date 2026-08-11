@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X, User, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { SupabaseAuthService } from "@/services/supabase-auth-service";
 import { User as AuthUser } from "@/types/auth";
 import { cn } from "@/lib/utils";
@@ -91,18 +90,15 @@ export function MobileNavDrawer({
               <span className="truncate">{title}</span>
             </Link>
 
-            <div className="flex items-center gap-1">
-              <ThemeToggle />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="h-8 w-8 rounded-full"
-                aria-label="Close menu"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 rounded-full"
+              aria-label="Close menu"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Navigation Links */}

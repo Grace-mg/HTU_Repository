@@ -4,6 +4,8 @@ import * as React from "react";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { applyTheme } from "@/lib/theme";
+
 export function ThemeToggle() {
   const [theme, setTheme] = React.useState<"light" | "dark">("light");
 
@@ -15,16 +17,10 @@ export function ThemeToggle() {
   }, []);
 
   const toggleTheme = () => {
-    const root = document.documentElement;
-    if (theme === "light") {
-      root.classList.add("dark");
-      setTheme("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      setTheme("light");
-      localStorage.setItem("theme", "light");
-    }
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    applyTheme(nextTheme);
   };
 
   return (

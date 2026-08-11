@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Globe,
   ArrowRight,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -85,66 +86,74 @@ function HowItWorksSection() {
   const steps = [
     {
       number: "01",
-      title: "Student Submission",
+      title: "Browse & Search",
       description:
-        "Graduating students upload their final year project or thesis documentation through their dashboard.",
-      icon: GraduationCap,
+        "Explore student innovations and theses across faculties and departments using keywords or category filters.",
+      icon: Search,
     },
     {
       number: "02",
-      title: "Department Review",
+      title: "Student Submission",
       description:
-        "Department heads and supervisors review submissions for academic quality, completeness, and compliance.",
-      icon: ShieldCheck,
+        "Graduating students upload their final year project or thesis documentation directly through their portal dashboard.",
+      icon: GraduationCap,
     },
     {
       number: "03",
-      title: "Admin Approval",
+      title: "Academic Review",
       description:
-        "University administrators perform final approval, ensuring records meet institutional standards before publishing.",
+        "Department heads and administrators review submissions for academic quality, completeness, and institutional compliance.",
       icon: ShieldCheck,
     },
     {
       number: "04",
-      title: "Public Archive",
+      title: "Public Access & Files",
       description:
-        "Approved records are published to the public archive where anyone can browse, search, and download.",
+        "Approved records are published to the public archive where students, faculty, and researchers can view and download documentation.",
       icon: Globe,
     },
   ];
 
   return (
-    <section className="w-full bg-card border-y border-border py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400 mb-4">
+    <section className="w-full bg-slate-50 dark:bg-muted/30 border-y border-border/60 py-16 sm:py-20 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center mb-12 space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3.5 py-1 text-xs font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400">
             How It Works
           </div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             From Submission to Public Archive
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            Every record goes through a structured review pipeline before
-            appearing in the public repository.
+          <p className="mx-auto max-w-2xl text-base text-muted-foreground leading-relaxed">
+            Discover how final year projects are submitted, reviewed, and published to the university repository in four simple steps.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((step) => (
-            <div
-              key={step.number}
-              className="relative rounded-xl border border-border bg-background p-6 space-y-3 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-black text-blue-600/20">{step.number}</span>
-                <step.icon className="h-5 w-5 text-blue-600" />
+          {steps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.number}
+                className="group relative rounded-2xl border border-border bg-card p-6 space-y-4 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="text-xl font-black text-slate-300 dark:text-slate-700 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {step.number}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground leading-snug">{step.title}</h3>
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-sm font-bold text-foreground">{step.title}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {step.description}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

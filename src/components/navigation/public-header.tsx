@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { applyTheme } from "@/lib/theme";
 
 export const PUBLIC_NAV_LINKS: NavLinkItem[] = [
   { label: "Home", href: "/" },
@@ -23,15 +24,14 @@ export const PUBLIC_NAV_LINKS: NavLinkItem[] = [
 
 function BrandLogo() {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2">
       <img
         src="/Repository Assets/LOGO-REPO.png"
         alt="Project HUB Logo"
-        className="h-9 w-auto object-contain flex-shrink-0"
+        className="h-8 sm:h-9 w-auto object-contain flex-shrink-0"
       />
-      {/* Horizontal Brand Text */}
-      <span className="text-base font-extrabold text-foreground tracking-tight whitespace-nowrap">
-        Project <span className="text-blue-600">HUB</span>
+      <span className="text-base sm:text-lg font-bold tracking-tight text-foreground">
+        PROJECT-HUB
       </span>
     </div>
   );
@@ -45,20 +45,6 @@ function HeaderThemeToggle() {
     setTheme(savedTheme);
     applyTheme(savedTheme);
   }, []);
-
-  const applyTheme = (newTheme: "light" | "dark" | "system") => {
-    const root = document.documentElement;
-    const isSystemDark =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    if (newTheme === "dark" || (newTheme === "system" && isSystemDark)) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  };
 
   const handleToggleTheme = () => {
     const nextTheme: "light" | "dark" | "system" =

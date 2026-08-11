@@ -38,6 +38,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { applyTheme } from "@/lib/theme";
 
 const authService = new SupabaseAuthService();
 
@@ -51,20 +52,6 @@ export function SidebarThemeToggle({ collapsed }: { collapsed: boolean }) {
     setTheme(saved);
     applyTheme(saved);
   }, []);
-
-  const applyTheme = (t: "light" | "dark" | "system") => {
-    if (typeof window === "undefined") return;
-    const root = document.documentElement;
-    if (t === "dark") {
-      root.classList.add("dark");
-    } else if (t === "light") {
-      root.classList.remove("dark");
-    } else if (t === "system") {
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (isDark) root.classList.add("dark");
-      else root.classList.remove("dark");
-    }
-  };
 
   const handleSelectTheme = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);

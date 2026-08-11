@@ -74,7 +74,7 @@ function BrowseByDepartmentsSection() {
       name: "Computer Science & IT",
       faculty: "Faculty of Computing",
       description: "Working apps and software builds, submitted with the repository source code and full documentation.",
-      image: "/Repository Assets/Free AI Resume Builder _ Online CV Maker _ Create ATS Resume.jpg",
+      image: "/Repository Assets/computer IT.jpeg",
       href: "/browse?department=computer-science",
       projectCount: 0,
     },
@@ -90,7 +90,7 @@ function BrowseByDepartmentsSection() {
       name: "Mechanical Engineering",
       faculty: "Faculty of Engineering",
       description: "Smart building HVAC automation, CAD structural models, and energy efficiency thesis projects.",
-      image: "/Repository Assets/Future of Smart HVAC Systems for Commercial Buildings.jpg",
+      image: "/Repository Assets/Investment not only needs finance but also people with the right skills_ A pilot project, Vocational, Education and Training (VET) Toolbox 2, will support to develop skills in eleven sub-Saharan African countries.jpg",
       href: "/browse?department=mechanical",
       projectCount: 0,
     },
@@ -105,77 +105,67 @@ function BrowseByDepartmentsSection() {
   ];
 
   return (
-    <section className="w-full bg-background py-16 md:py-24">
+    <section className="w-full bg-background py-16 md:py-24 transition-colors">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2">
-              <Building2 className="h-4 w-4" /> Academic Departments
-            </div>
-            <h2 className="text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
               Browse by Departments
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+            <p className="text-base text-muted-foreground sm:text-lg max-w-2xl leading-relaxed">
               Explore student innovations across specialized academic disciplines
             </p>
           </div>
-          <Button asChild variant="outline" className="border-blue-600/30 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 font-bold">
-            <Link href="/browse" className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+          <Button
+            asChild
+            variant="outline"
+            className="border-blue-600/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white font-bold rounded-full px-6 py-2.5 transition-all shadow-sm shrink-0"
+          >
+            <Link href="/browse" className="inline-flex items-center justify-center whitespace-nowrap">
               <span>View All Departments</span>
-              <ArrowRight className="h-4 w-4 flex-shrink-0" />
             </Link>
           </Button>
         </div>
 
+        {/* Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {departments.map((dept) => (
-            <Link
+            <div
               key={dept.name}
-              href={dept.href}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 dark:border-border bg-white dark:bg-card shadow-sm transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1.5"
+              className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1.5"
             >
-              {/* Top Image Container with Faculty Tag & Project Count Badge */}
-              <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-100">
+              {/* Image Container */}
+              <div className="relative h-52 sm:h-56 w-full overflow-hidden bg-muted">
                 <img
                   src={dept.image}
                   alt={dept.name}
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
-                
-                {/* Faculty Tag */}
-                <span className="absolute top-3 left-3 text-[11px] font-semibold text-white bg-slate-950/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
-                  {dept.faculty}
-                </span>
-
-                {/* Project Count Badge (Set to 0) */}
-                <span className="absolute top-3 right-3 text-xs font-bold text-blue-700 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full shadow-md">
-                  {dept.projectCount} Projects
-                </span>
               </div>
 
-              {/* Card Body */}
-              <div className="p-6 flex flex-col flex-1 justify-between">
-                <div>
-                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {/* Card Content */}
+              <div className="p-6 flex flex-col flex-1 justify-between gap-6">
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                    {dept.faculty}
+                  </span>
+                  <h3 className="text-xl font-extrabold text-foreground leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {dept.name}
                   </h3>
-                  <p className="mt-2.5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal line-clamp-2">
-                    {dept.description}
-                  </p>
                 </div>
 
-                {/* Footer Action Row */}
-                <div className="mt-6 pt-4 border-t border-slate-100 dark:border-border flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                    Showcase Archive
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                    Explore Department <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
+                {/* Explore Department CTA Button */}
+                <Button
+                  asChild
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl py-3 shadow-md shadow-blue-600/20 transition-all duration-200"
+                >
+                  <Link href={dept.href}>
+                    <span>Explore Department</span>
+                  </Link>
+                </Button>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
@@ -191,14 +181,14 @@ function RecentlyUploadedSection() {
       title: "Agri Connect",
       description: "Digital platform connecting smallholder farmers to local agricultural markets and buyers.",
       program: "BTECH Computer Science · 2026",
-      image: "/Repository Assets/Solar powered irrigation system watering crops on farm field at sunset.jpg",
+      image: "/Repository Assets/Agriculteurs et technologie avancée en Afrique.jpg",
     },
     {
       id: "HTU/ICT/2026/009",
       title: "Vibe Market",
       description: "An interactive digital market space for student creators and small business vendors.",
       program: "HND ICT · 2026",
-      image: "/Repository Assets/Free AI Resume Builder _ Online CV Maker _ Create ATS Resume.jpg",
+      image: "/Repository Assets/two-women-viewing-content-phone-local-african-market.jpg",
     },
     {
       id: "HTU/ENG/2026/031",
@@ -328,70 +318,6 @@ function CTASection() {
   );
 }
 
-/* ─────────────── How It Works Section ─────────────── */
-function HowItWorksSection() {
-  const steps = [
-    {
-      number: "01",
-      title: "Browse or Search",
-      description: "Use the search bar or browse by department to find projects and theses from this year's graduating class.",
-      icon: Search,
-    },
-    {
-      number: "02",
-      title: "View Project Details",
-      description: "Read abstracts, view project metadata, and explore the full documentation submitted by students.",
-      icon: BookOpen,
-    },
-    {
-      number: "03",
-      title: "Access Files",
-      description: "Download approved project files and documentation according to the repository's access rules.",
-      icon: Building2,
-    },
-  ];
-
-  return (
-    <section id="how-it-works" className="w-full bg-background py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
-            How It Works
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Discover and access final year projects in three simple steps
-          </p>
-        </div>
-
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
-          {steps.map((step) => {
-            const Icon = step.icon;
-            return (
-              <div
-                key={step.number}
-                className="relative flex flex-col items-center rounded-xl border border-border bg-card p-6 text-center transition-all duration-200 hover:shadow-md"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 text-white shadow-md shadow-blue-600/20">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <span className="mt-4 text-xs font-bold uppercase tracking-wider text-blue-600">
-                  Step {step.number}
-                </span>
-                <h3 className="mt-2 text-base font-semibold text-foreground">
-                  {step.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ─────────────── Main Landing Page ─────────────── */
 export default function HomePage() {
   return (
@@ -399,7 +325,6 @@ export default function HomePage() {
       <HeroSection />
       <BrowseByDepartmentsSection />
       <RecentlyUploadedSection />
-      <HowItWorksSection />
       <CTASection />
     </>
   );

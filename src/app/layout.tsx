@@ -15,10 +15,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
-    { media: "(prefers-color-scheme: dark)", color: "#030712" },
-  ],
+  themeColor: "#f8fafc",
 };
 
 export const metadata: Metadata = {
@@ -29,7 +26,7 @@ export const metadata: Metadata = {
   description: "Centralized Academic Project and Thesis Repository System",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "PROJECT-HUB",
   },
   other: {
@@ -43,7 +40,38 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full bg-background">
+    <html lang="en" className="h-full bg-background" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('theme');
+                  var isDark = saved === 'dark' || ((!saved || saved === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                  var themeColor = isDark ? '#030712' : '#f8fafc';
+                  var metas = document.querySelectorAll('meta[name="theme-color"]');
+                  if (metas.length > 0) {
+                    metas.forEach(function(m) {
+                      m.setAttribute('content', themeColor);
+                      m.removeAttribute('media');
+                    });
+                  }
+                  var appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+                  if (appleMeta) {
+                    appleMeta.setAttribute('content', isDark ? 'black-translucent' : 'default');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${lato.className} min-h-full bg-background text-foreground antialiased selection:bg-blue-500/20`}>
         <Providers>{children}</Providers>
       </body>
