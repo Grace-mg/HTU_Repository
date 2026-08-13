@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const adminSupabase = createAdminClient();
@@ -12,7 +14,7 @@ export async function GET() {
     const { count: pendingApprovals } = await adminSupabase
       .from("repository_records")
       .select("id", { count: "exact" })
-      .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING", "SUBMITTED", "DRAFT"]);
+      .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING_REVIEW", "PENDING", "SUBMITTED", "DRAFT"]);
 
     // Count total unique users combining auth.users and public.profiles
     const userIds = new Set<string>();

@@ -15,6 +15,16 @@ import {
   Plus,
   Users,
   Search,
+  History,
+  PlusCircle,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  Building2,
+  GraduationCap,
+  Eye,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,9 +33,11 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createRepositoryRecordSchema, CreateRepositoryRecordInput, GroupMemberInput } from "@/lib/validation/repository";
 import { adminService } from "@/services/supabase-admin-service";
+import { repositoryService } from "@/services/supabase-repository-service";
 import { SupabaseAuthService } from "@/services/supabase-auth-service";
 import { HTU_FACULTIES, HTU_DEPARTMENTS, HTU_CATEGORIES, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
 import { extractStudentIdFromEmail } from "@/lib/utils/student";
+import { cn } from "@/lib/utils";
 
 const authService = new SupabaseAuthService();
 
@@ -33,6 +45,9 @@ export default function StudentSubmitProjectPage() {
   const router = useRouter();
 
   const [categories, setCategories] = React.useState<any[]>(HTU_CATEGORIES);
+  const [activeTab, setActiveTab] = React.useState<"submit" | "history">("submit");
+  const [userSubmissions, setUserSubmissions] = React.useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = React.useState(false);
 
   const [formData, setFormData] = React.useState<CreateRepositoryRecordInput>({
     title: "",
@@ -55,28 +70,72 @@ export default function StudentSubmitProjectPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
 
-  // Auto-populate logged in student name and student ID if available
+  // Auto-populate logged in student name and student ID & load submission history
   React.useEffect(() => {
-    async function loadUserData() {
-      const user = await authService.getCurrentUser();
-      if (user) {
-        const derivedStudentId = user.studentId || extractStudentIdFromEmail(user.email || "");
-        setFormData((prev) => ({
-          ...prev,
-          studentName: prev.studentName || user.name || "",
-          studentId: prev.studentId || derivedStudentId || "",
-        }));
-      }
-      const cats = await adminService.getCategories();
-      if (cats && cats.length > 0) {
-        setCategories(cats);
-        setFormData((prev) => ({
-          ...prev,
-          categoryId: cats.some((c: any) => c.id === prev.categoryId) ? prev.categoryId : cats[0].id,
-        }));
+    async function loadUserDataAndHistory() {
+      setIsLoadingHistory(true);
+      try {
+        const user = await authService.getCurrentUser();
+        let derivedStudentId = "";
+        let userName = "";
+        let userEmail = "";
+
+        if (user) {
+          derivedStudentId = user.studentId || extractStudentIdFromEmail(user.email || "");
+          userName = user.name || "";
+          userEmail = user.email || "";
+
+          setFormData((prev) => ({
+            ...prev,
+            studentName: prev.studentName || userName,
+            studentId: prev.studentId || derivedStudentId,
+          }));
+        }
+
+        const cats = await adminService.getCategories();
+        if (cats && cats.length > 0) {
+          setCategories(cats);
+          setFormData((prev) => ({
+            ...prev,
+            categoryId: cats.some((c: any) => c.id === prev.categoryId) ? prev.categoryId : cats[0].id,
+          }));
+        }
+
+        // Fetch submission history for user
+        const res = await repositoryService.getRecords({ status: "all" });
+        const allRecords = res.records || [];
+        const lowerEmail = userEmail.toLowerCase();
+        const lowerName = userName.toLowerCase();
+        const lowerId = derivedStudentId.toLowerCase();
+
+        const mySubmissions = allRecords.filter((rec: any) => {
+          const recName = (rec.studentName || "").toLowerCase();
+          const recId = (rec.studentId || "").toLowerCase();
+
+          const matchesStudentName = lowerName && recName && recName.includes(lowerName);
+          const matchesStudentId = lowerId && recId && recId === lowerId;
+          const isGroupMember = rec.groupMembers && Array.isArray(rec.groupMembers) && rec.groupMembers.some((m: any) => {
+            const mEmail = (m.email || "").toLowerCase();
+            const mName = (m.name || "").toLowerCase();
+            const mId = (m.studentId || "").toLowerCase();
+            return (
+              (lowerEmail && mEmail === lowerEmail) ||
+              (lowerName && mName && mName.includes(lowerName)) ||
+              (lowerId && mId && mId === lowerId)
+            );
+          });
+
+          return matchesStudentName || matchesStudentId || isGroupMember;
+        });
+
+        setUserSubmissions(mySubmissions);
+      } catch (e) {
+        console.error("Failed to load user history:", e);
+      } finally {
+        setIsLoadingHistory(false);
       }
     }
-    loadUserData();
+    loadUserDataAndHistory();
   }, []);
 
   // Cascading departments from selected faculty
@@ -286,8 +345,182 @@ export default function StudentSubmitProjectPage() {
         description="Upload your academic project or thesis to the HTU Repository system for supervisor & HOD evaluation."
       />
 
-      {/* Submission Workflow Info Card */}
-      <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 sm:p-5 dark:border-blue-900/50 dark:bg-blue-950/20">
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
+        <Button
+          type="button"
+          variant={activeTab === "submit" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveTab("submit")}
+          className={cn(
+            "gap-2 text-xs font-semibold select-none cursor-pointer",
+            activeTab === "submit" ? "bg-blue-600 text-white" : ""
+          )}
+        >
+          <PlusCircle className="h-4 w-4" /> Submit New Project / Thesis
+        </Button>
+
+        <Button
+          type="button"
+          variant={activeTab === "history" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActiveTab("history")}
+          className={cn(
+            "gap-2 text-xs font-semibold select-none cursor-pointer relative",
+            activeTab === "history" ? "bg-blue-600 text-white" : ""
+          )}
+        >
+          <History className="h-4 w-4" /> Submission History & Status
+          {userSubmissions.length > 0 && (
+            <span className="ml-1 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-[10px] px-1.5 py-0.2 font-extrabold">
+              {userSubmissions.length}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      {activeTab === "history" ? (
+        <div className="space-y-6">
+          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 sm:p-5 dark:border-blue-900/50 dark:bg-blue-950/20">
+            <div className="flex items-start gap-3">
+              <div className="h-9 w-9 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0 dark:bg-blue-500/20 dark:text-blue-400">
+                <History className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 text-xs">
+                <h4 className="font-bold text-foreground">Your Submission History</h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  Review all projects and theses submitted by you or your group. Check live review status, review feedback, and view full record details.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {isLoadingHistory ? (
+            <div className="rounded-xl border border-border bg-card p-12 text-center text-xs text-muted-foreground">
+              Loading submission history...
+            </div>
+          ) : userSubmissions.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center space-y-4">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+                <History className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-sm text-foreground">No Submissions Found</h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  You haven&apos;t submitted any projects or theses yet. Use the submission form to send your project for supervisor evaluation.
+                </p>
+              </div>
+              <Button size="sm" onClick={() => setActiveTab("submit")} className="gap-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white">
+                <PlusCircle className="h-4 w-4" /> Submit Your First Project
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {userSubmissions.map((rec) => {
+                const isProject = rec.recordType === "PROJECT";
+                const targetHref = isProject ? `/dashboard/projects/${rec.id}` : `/dashboard/theses/${rec.id}`;
+
+                let statusBadge = (
+                  <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border-2 border-amber-500 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-500">
+                    <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" /> Pending Review
+                  </span>
+                );
+
+                if (rec.status === "APPROVED" || rec.status === "PUBLISHED") {
+                  statusBadge = (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border-2 border-emerald-500 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-500">
+                      <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> Approved & Published
+                    </span>
+                  );
+                } else if (rec.status === "REJECTED") {
+                  statusBadge = (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border-2 border-red-500 dark:bg-red-950/80 dark:text-red-300 dark:border-red-500">
+                      <XCircle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" /> Rejected
+                    </span>
+                  );
+                }
+
+                return (
+                  <div key={rec.id} className="rounded-xl border border-border bg-card p-5 sm:p-6 shadow-sm transition-all hover:border-blue-300 dark:hover:border-blue-700 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={isProject ? "default" : "secondary"} className={isProject ? "bg-blue-600 text-white text-xs font-semibold" : "bg-amber-500/10 text-amber-700 text-xs font-semibold"}>
+                          {isProject ? "Student Project" : "Academic Thesis"}
+                        </Badge>
+                        {statusBadge}
+                      </div>
+
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>Submitted {rec.createdAt ? new Date(rec.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently"}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <h3 className="text-base font-bold text-foreground leading-snug">
+                        <Link href={targetHref} className="hover:text-blue-600 hover:underline">
+                          {rec.title}
+                        </Link>
+                      </h3>
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {rec.abstract}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs text-muted-foreground pt-1 bg-muted/30 p-3 rounded-lg">
+                      <div className="flex items-center gap-1.5">
+                        <GraduationCap className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                        <span className="truncate"><strong>Author:</strong> {rec.studentName}</span>
+                      </div>
+
+                      {rec.supervisorName && (
+                        <div className="flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                          <span className="truncate"><strong>Supervisor:</strong> {rec.supervisorName}</span>
+                        </div>
+                      )}
+
+                      {rec.departmentName && (
+                        <div className="flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                          <span className="truncate">{rec.departmentName}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {rec.groupMembers && rec.groupMembers.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                        <span className="font-semibold text-foreground flex items-center gap-1">
+                          <Users className="h-3.5 w-3.5 text-blue-600" /> Group Members ({rec.groupMembers.length}):
+                        </span>
+                        {rec.groupMembers.map((m: any, idx: number) => (
+                          <span key={idx} className="bg-accent px-2 py-0.5 rounded text-[11px] font-medium text-foreground">
+                            {m.name || m.email}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Academic Year {rec.academicYear || 2026}
+                      </span>
+                      <Button asChild size="sm" variant="outline" className="h-8 gap-1.5 text-xs font-semibold hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950">
+                        <Link href={targetHref}>
+                          <Eye className="h-3.5 w-3.5" /> View Details
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Submission Workflow Info Card */}
+          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 sm:p-5 dark:border-blue-900/50 dark:bg-blue-950/20">
         <div className="flex items-start gap-3">
           <div className="h-9 w-9 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0 dark:bg-blue-500/20 dark:text-blue-400">
             <ShieldCheck className="h-5 w-5" />
@@ -712,6 +945,8 @@ export default function StudentSubmitProjectPage() {
           </Button>
         </div>
       </form>
-    </div>
+    </>
+  )}
+</div>
   );
 }

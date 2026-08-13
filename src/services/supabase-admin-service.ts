@@ -39,12 +39,14 @@ export class SupabaseAdminService {
         const { count: pendingApprovals } = await this.client
           .from("repository_records")
           .select("id", { count: "exact" })
-          .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING", "SUBMITTED", "DRAFT"]);
+          .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING_REVIEW", "PENDING", "SUBMITTED", "DRAFT"]);
 
         let usersCount = 0;
         try {
-          const usersList = await this.getUsers();
-          usersCount = usersList ? usersList.length : 0;
+          const { count } = await this.client
+            .from("profiles")
+            .select("id", { count: "exact" });
+          usersCount = count || 0;
         } catch {}
 
         const { data: viewsData } = await this.client
@@ -62,20 +64,6 @@ export class SupabaseAdminService {
       } catch {
         stats = { totalRecords: 0, pendingApprovals: 0, totalUsers: 0, totalViews: 0 };
       }
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("local_user_submissions");
-        if (stored) {
-          const localList: RepositoryRecord[] = JSON.parse(stored);
-          const pendingCount = localList.filter(
-            (r) => r.status === "PENDING_HOD" || r.status === "PENDING_DEAN"
-          ).length;
-          stats.totalRecords += localList.length;
-          stats.pendingApprovals += pendingCount;
-        }
-      } catch {}
     }
 
     return stats;
@@ -108,18 +96,6 @@ export class SupabaseAdminService {
       } catch {}
     }
 
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("local_user_submissions");
-        if (stored) {
-          const localList: RepositoryRecord[] = JSON.parse(stored);
-          const existingIds = new Set(records.map((r) => r.id));
-          const newLocals = localList.filter((l) => !existingIds.has(l.id));
-          records = [...newLocals, ...records];
-        }
-      } catch {}
-    }
-
     return records;
   }
 
@@ -142,50 +118,11 @@ export class SupabaseAdminService {
         const { data, error } = await this.client
           .from("repository_records")
           .select("*")
-          .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING", "SUBMITTED", "DRAFT"])
+          .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING_REVIEW", "PENDING", "SUBMITTED", "DRAFT"])
           .order("created_at", { ascending: false });
 
         if (!error && data) {
           records = data.map(mapRowToRecord);
-        }
-      } catch {}
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("local_user_submissions");
-        if (stored) {
-          const localList: RepositoryRecord[] = JSON.parse(stored);
-          const pendingLocals = localList.filter(
-            (r) => r.status !== "PUBLISHED"
-          );
-          const existingIds = new Set(records.map((r) => r.id));
-          const newLocals = pendingLocals.filter((l) => !existingIds.has(l.id));
-
-          // Auto-push unsynced local submissions to central Supabase DB
-          newLocals.forEach((loc) => {
-            fetch("/api/records", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: loc.title,
-                recordType: loc.recordType,
-                status: loc.status || "PENDING_HOD",
-                abstract: loc.abstract,
-                studentName: loc.studentName,
-                studentId: loc.studentId,
-                groupMembers: loc.groupMembers || [],
-                supervisorName: loc.supervisorName,
-                academicYear: loc.academicYear,
-                facultyId: loc.facultyId || "fast",
-                departmentId: loc.departmentId || "cs",
-                categoryId: loc.categoryId || "software",
-                keywords: loc.keywords || ["Submission"],
-              }),
-            }).catch(() => {});
-          });
-
-          records = [...newLocals, ...records];
         }
       } catch {}
     }

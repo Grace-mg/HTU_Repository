@@ -1,5 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { User, GraduationCap, ArrowRight, Tag } from "lucide-react";
 import { RepositoryRecord } from "@/types/repository";
 import { Button } from "@/components/ui/button";
@@ -18,8 +19,17 @@ export function RepositoryRecordCard({
   className,
   ...props
 }: RepositoryRecordCardProps) {
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/dashboard");
   const isProject = record.recordType === "PROJECT";
-  const targetHref = isProject ? `/projects/${record.id}` : `/theses/${record.id}`;
+
+  const targetHref = isDashboard
+    ? isProject
+      ? `/dashboard/projects/${record.id}`
+      : `/dashboard/theses/${record.id}`
+    : isProject
+    ? `/projects/${record.id}`
+    : `/theses/${record.id}`;
 
   const statusConfig = React.useMemo(() => {
     if (record.status === "PUBLISHED" || record.status === "APPROVED") {

@@ -9,4 +9,5 @@ export interface AuthService {
   resetPassword(input: ResetPasswordInput): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   getSession(): Promise<AuthSession | null>;
+  verifyOtp?(email: string, token: string): Promise<AuthSession>;
 }

@@ -16,8 +16,11 @@ import {
   Share2,
   Bookmark,
   CheckCircle,
+  Clock,
+  XCircle,
   FolderOpen,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { RepositoryRecord } from "@/types/repository";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,16 +33,54 @@ import { cn } from "@/lib/utils";
 export interface RecordDetailViewProps extends React.HTMLAttributes<HTMLDivElement> {
   record: RepositoryRecord;
   relatedRecords?: RepositoryRecord[];
+  backHref?: string;
 }
 
 export function RecordDetailView({
   record,
   relatedRecords = [],
+  backHref: customBackHref,
   className,
   ...props
 }: RecordDetailViewProps) {
+  const pathname = usePathname();
   const isProject = record.recordType === "PROJECT";
-  const backHref = "/browse";
+  const isDashboard = pathname?.startsWith("/dashboard");
+
+  const defaultBackHref = isDashboard
+    ? isProject
+      ? "/dashboard/projects"
+      : "/dashboard/theses"
+    : "/browse";
+
+  const backHref = customBackHref || defaultBackHref;
+  const backLabel = isDashboard
+    ? isProject
+      ? "Back to My Projects"
+      : "Back to My Theses"
+    : "Back to Archive";
+
+  const statusConfig = React.useMemo(() => {
+    if (record.status === "PUBLISHED" || record.status === "APPROVED") {
+      return {
+        label: "Approved & Published",
+        className: "bg-emerald-50 text-emerald-700 border-2 border-emerald-500 font-bold dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-500",
+        icon: <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />,
+      };
+    }
+    if (record.status === "REJECTED") {
+      return {
+        label: "Rejected",
+        className: "bg-red-50 text-red-700 border-2 border-red-500 font-bold dark:bg-red-950/80 dark:text-red-300 dark:border-red-500",
+        icon: <XCircle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />,
+      };
+    }
+    return {
+      label: "Pending Review",
+      className: "bg-amber-50 text-amber-700 border-2 border-amber-500 font-bold dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-500",
+      icon: <Clock className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />,
+    };
+  }, [record.status]);
 
   const [viewsCount, setViewsCount] = React.useState(record.viewsCount || 0);
 
@@ -57,7 +98,7 @@ export function RecordDetailView({
           href={backHref}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Archive
+          <ArrowLeft className="h-3.5 w-3.5" /> {backLabel}
         </Link>
       </div>
 
@@ -76,8 +117,13 @@ export function RecordDetailView({
             {isProject ? "Student Project" : "Academic Thesis"}
           </Badge>
 
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border-2 border-emerald-500 dark:border-emerald-500 px-3 py-0.5 rounded-full shadow-xs">
-            <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> Approved & Published
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 text-xs font-semibold px-3 py-0.5 rounded-full shadow-xs",
+              statusConfig.className
+            )}
+          >
+            {statusConfig.icon} {statusConfig.label}
           </span>
 
           <div className="flex items-center gap-3 ml-auto">

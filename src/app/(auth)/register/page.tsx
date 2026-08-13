@@ -49,7 +49,7 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     try {
       await authService.register(formData);
-      router.push("/dashboard");
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err: any) {
       setIsSubmitting(false);
       setAuthError(err.message || "Registration failed. Please try again.");
