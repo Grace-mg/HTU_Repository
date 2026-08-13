@@ -9,10 +9,13 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { RepositoryRecordCard } from "@/components/projects/repository-record-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderOpen, Filter } from "lucide-react";
+import { FolderOpen, Filter, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { repositoryService } from "@/services/supabase-repository-service";
+import { SupabaseAuthService } from "@/services/supabase-auth-service";
 import { RepositoryRecord } from "@/types/repository";
+
+const authService = new SupabaseAuthService();
 
 export default function DashboardProjectsPage() {
   const router = useRouter();
@@ -24,25 +27,67 @@ export default function DashboardProjectsPage() {
   const yearParam = searchParams.get("academicYear") || searchParams.get("year") || "all";
   const categoryParam = searchParams.get("categoryId") || searchParams.get("category") || "all";
   const sortParam = searchParams.get("sort") || "newest";
+  const viewScope = searchParams.get("scope") || "my_group"; // "my_group" | "all_published"
 
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
   const [records, setRecords] = React.useState<RepositoryRecord[]>([]);
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
 
   React.useEffect(() => {
     async function loadProjects() {
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+
+      const targetStatus = viewScope === "my_group" ? "all" : undefined;
       const res = await repositoryService.getRecords({
         query: query || undefined,
         recordType: "PROJECT",
-        status: "PUBLISHED",
+        status: targetStatus,
         facultyId: facultyParam !== "all" ? facultyParam : undefined,
         departmentId: deptParam !== "all" ? deptParam : undefined,
         categoryId: categoryParam !== "all" ? categoryParam : undefined,
         academicYear: yearParam !== "all" ? Number(yearParam) : undefined,
       });
-      setRecords(res.records);
+
+      let fetched = res.records || [];
+
+      if (viewScope === "my_group" && user) {
+        const uEmail = (user.email || "").toLowerCase().trim();
+        const uName = (user.name || "").toLowerCase().trim();
+        const uStudentId = (user.studentId || "").toLowerCase().trim();
+
+        fetched = fetched.filter((r) => {
+          // Check lead author
+          const isLead =
+            (uName && r.studentName?.toLowerCase() === uName) ||
+            (uStudentId && r.studentId?.toLowerCase() === uStudentId) ||
+            (uEmail && r.studentName?.toLowerCase().includes(uName));
+
+          if (isLead) return true;
+
+          // Check group members
+          if (r.groupMembers && Array.isArray(r.groupMembers)) {
+            return r.groupMembers.some((gm: any) => {
+              const gmEmail = (gm.email || "").toLowerCase().trim();
+              const gmId = (gm.studentId || "").toLowerCase().trim();
+              const gmName = (gm.name || "").toLowerCase().trim();
+
+              return (
+                (uEmail && gmEmail === uEmail) ||
+                (uStudentId && gmId === uStudentId) ||
+                (uName && gmName === uName)
+              );
+            });
+          }
+
+          return false;
+        });
+      }
+
+      setRecords(fetched);
     }
     loadProjects();
-  }, [query, facultyParam, deptParam, yearParam, categoryParam]);
+  }, [query, facultyParam, deptParam, yearParam, categoryParam, viewScope]);
 
   const updateParams = React.useCallback(
     (updates: Record<string, string | null | undefined>) => {
@@ -72,9 +117,35 @@ export default function DashboardProjectsPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader
-        title="Browse Student Projects"
-        description="Filter and explore engineering prototypes, web applications, hardware systems, and software builds from Supabase database."
+        title="Student Projects & Submissions"
+        description="View real-time approval status for your group projects, explore hardware prototypes, and browse university software builds."
       />
+
+      {/* Scope Switcher: My Group Submissions vs All Published Projects */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border pb-4">
+        <Button
+          type="button"
+          variant={viewScope === "my_group" ? "default" : "outline"}
+          size="sm"
+          onClick={() => updateParams({ scope: "my_group" })}
+          className={`text-xs font-semibold gap-2 ${
+            viewScope === "my_group" ? "bg-blue-600 text-white" : ""
+          }`}
+        >
+          <Users className="h-4 w-4" /> My Group Projects & Submissions
+        </Button>
+        <Button
+          type="button"
+          variant={viewScope === "all_published" ? "default" : "outline"}
+          size="sm"
+          onClick={() => updateParams({ scope: "all_published" })}
+          className={`text-xs font-semibold gap-2 ${
+            viewScope === "all_published" ? "bg-blue-600 text-white" : ""
+          }`}
+        >
+          <Globe className="h-4 w-4" /> All Approved University Projects
+        </Button>
+      </div>
 
       {/* Top Search Bar & Sort Dropdown Row */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
@@ -160,24 +231,28 @@ export default function DashboardProjectsPage() {
         <div className="lg:col-span-3 space-y-6">
           {records.length === 0 ? (
             <EmptyState
-              title="No Projects Found"
-              description="No student project records match your current search and filter criteria."
+              title={viewScope === "my_group" ? "No Group Project Submissions Found" : "No Projects Found"}
+              description={
+                viewScope === "my_group"
+                  ? "When you or your project teammates submit a project, its status (Pending, Approved, or Rejected) will appear here."
+                  : "No student project records match your current search and filter criteria."
+              }
               icon={FolderOpen}
               action={
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push("/dashboard/projects")}
+                  onClick={() => router.push("/dashboard/submit")}
                   className="text-xs font-semibold"
                 >
-                  Clear Filters
+                  Submit Project
                 </Button>
               }
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {records.map((r) => (
-                <RepositoryRecordCard key={r.id} record={r} />
+                <RepositoryRecordCard key={r.id} record={r} showStatus={viewScope === "my_group"} />
               ))}
             </div>
           )}

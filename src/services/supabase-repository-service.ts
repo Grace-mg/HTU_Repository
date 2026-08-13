@@ -62,9 +62,9 @@ export class SupabaseRepositoryService {
       query = query.eq("record_type", filters.recordType);
     }
 
-    if (filters.status) {
+    if (filters.status && filters.status !== "all") {
       query = query.eq("status", filters.status);
-    } else {
+    } else if (filters.status !== "all") {
       // Default to PUBLISHED and APPROVED records for public queries
       query = query.in("status", ["PUBLISHED", "APPROVED"]);
     }

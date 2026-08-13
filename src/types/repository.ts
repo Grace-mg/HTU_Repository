@@ -57,7 +57,7 @@ export interface RepositoryFilters {
   categoryId?: string;
   academicYear?: number | string;
   keyword?: string;
-  status?: RecordStatus;
+  status?: RecordStatus | "all";
   page?: number;
   pageSize?: number;
   sortBy?: string;

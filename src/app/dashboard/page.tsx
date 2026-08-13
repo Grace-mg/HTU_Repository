@@ -6,27 +6,91 @@ import {
   BookOpen,
   FolderOpen,
   Bookmark,
-  Search,
-  ArrowRight,
-  Sparkles,
-  User,
-  Shield,
-  Clock,
   Building2,
   UploadCloud,
-  FilePlus,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/layout/page-header";
+import { RepositoryRecordCard } from "@/components/projects/repository-record-card";
+import { RepositoryRecord } from "@/types/repository";
+import { repositoryService } from "@/services/supabase-repository-service";
+import { SupabaseAuthService } from "@/services/supabase-auth-service";
+
+const authService = new SupabaseAuthService();
 
 export default function UserDashboardPage() {
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+  const [userRecords, setUserRecords] = React.useState<RepositoryRecord[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function loadUserDataAndSubmissions() {
+      setIsLoading(true);
+      try {
+        const user = await authService.getCurrentUser();
+        setCurrentUser(user);
+
+        // Fetch all repository records across all statuses
+        const res = await repositoryService.getRecords({ status: "all" });
+        const allRecords = res.records || [];
+
+        if (user) {
+          const uEmail = (user.email || "").toLowerCase().trim();
+          const uName = (user.name || "").toLowerCase().trim();
+          const uStudentId = (user.studentId || "").toLowerCase().trim();
+
+          const matched = allRecords.filter((r) => {
+            // Match lead author
+            const isLead =
+              (uName && r.studentName?.toLowerCase() === uName) ||
+              (uStudentId && r.studentId?.toLowerCase() === uStudentId) ||
+              (uEmail && r.studentName?.toLowerCase().includes(uName));
+
+            if (isLead) return true;
+
+            // Match any group member
+            if (r.groupMembers && Array.isArray(r.groupMembers)) {
+              return r.groupMembers.some((gm: any) => {
+                const gmEmail = (gm.email || "").toLowerCase().trim();
+                const gmId = (gm.studentId || "").toLowerCase().trim();
+                const gmName = (gm.name || "").toLowerCase().trim();
+
+                return (
+                  (uEmail && gmEmail === uEmail) ||
+                  (uStudentId && gmId === uStudentId) ||
+                  (uName && gmName === uName)
+                );
+              });
+            }
+
+            return false;
+          });
+
+          setUserRecords(matched);
+        } else {
+          setUserRecords(allRecords.slice(0, 2));
+        }
+      } catch (err) {
+        console.error("Failed to load user submissions:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadUserDataAndSubmissions();
+  }, []);
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Welcome Banner Header */}
       <PageHeader
         badge="User Portal Active"
-        title="Welcome back to Project Hub"
-        description="Submit your final-year project, browse approved university research, explore theses, and manage your saved bookmarks."
+        title={currentUser ? `Welcome back, ${currentUser.name || "Student"}` : "Welcome back to Project Hub"}
+        description="Submit your final-year project, track your group project's review status, explore theses, and manage saved bookmarks."
         actions={
           <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-2 h-10 px-5">
             <Link href="/dashboard/submit">
@@ -94,6 +158,46 @@ export default function UserDashboardPage() {
             </p>
           </div>
         </Link>
+      </div>
+
+      {/* My Submissions & Group Projects Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-600" />
+            My Submissions & Group Projects
+          </h2>
+          <Button asChild variant="outline" size="sm" className="text-xs font-semibold">
+            <Link href="/dashboard/submit">Submit New Project</Link>
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="p-8 text-center text-xs text-muted-foreground rounded-xl border border-border bg-card">
+            Loading your group project submissions...
+          </div>
+        ) : userRecords.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {userRecords.map((rec) => (
+              <RepositoryRecordCard key={rec.id} record={rec} showStatus />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center space-y-3">
+            <div className="mx-auto h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600">
+              <FolderOpen className="h-6 w-6" />
+            </div>
+            <div className="space-y-1 max-w-md mx-auto">
+              <h3 className="font-bold text-sm text-foreground">No group project submissions found</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                When you submit a project or when a teammate includes you as a group member, your project and its real-time approval status will appear here.
+              </p>
+            </div>
+            <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">
+              <Link href="/dashboard/submit">Submit Your Project</Link>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Summary Section Grid */}

@@ -9,15 +9,36 @@ import { cn } from "@/lib/utils";
 
 export interface RepositoryRecordCardProps extends React.HTMLAttributes<HTMLDivElement> {
   record: RepositoryRecord;
+  showStatus?: boolean;
 }
 
 export function RepositoryRecordCard({
   record,
+  showStatus = false,
   className,
   ...props
 }: RepositoryRecordCardProps) {
   const isProject = record.recordType === "PROJECT";
   const targetHref = isProject ? `/projects/${record.id}` : `/theses/${record.id}`;
+
+  const statusConfig = React.useMemo(() => {
+    if (record.status === "PUBLISHED" || record.status === "APPROVED") {
+      return {
+        label: "Approved & Published",
+        className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 border-2 border-emerald-500 font-bold",
+      };
+    }
+    if (record.status === "REJECTED") {
+      return {
+        label: "Rejected",
+        className: "bg-red-50 text-red-700 dark:bg-red-950/80 border-2 border-red-500 font-bold",
+      };
+    }
+    return {
+      label: "Pending Review",
+      className: "bg-amber-50 text-amber-700 dark:bg-amber-950/80 border-2 border-amber-500 font-bold",
+    };
+  }, [record.status]);
 
   return (
     <div
@@ -42,6 +63,13 @@ export function RepositoryRecordCard({
             >
               {isProject ? "Project" : "Thesis"}
             </Badge>
+
+            {(showStatus || record.status !== "PUBLISHED") && (
+              <Badge className={cn("text-[10px] px-2 py-0.5", statusConfig.className)}>
+                {statusConfig.label}
+              </Badge>
+            )}
+
             <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
               {record.departmentName || "Department"}
             </span>

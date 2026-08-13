@@ -27,7 +27,7 @@ describe("Phase 10 User Dashboard Pages Tests", () => {
 
   it("renders Dashboard Projects page correctly", () => {
     render(<DashboardProjectsPage />);
-    expect(screen.getByRole("heading", { name: /browse student projects/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /student projects/i })).toBeInTheDocument();
   });
 
   it("renders Dashboard Theses page correctly", () => {
