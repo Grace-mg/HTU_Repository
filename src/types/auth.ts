@@ -10,6 +10,7 @@ export interface User {
   avatarUrl?: string;
   facultyId?: string;
   departmentId?: string;
+  studentId?: string;
 }
 
 export interface AuthSession {

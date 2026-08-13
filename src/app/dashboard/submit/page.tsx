@@ -25,6 +25,7 @@ import { createRepositoryRecordSchema, CreateRepositoryRecordInput, GroupMemberI
 import { adminService } from "@/services/supabase-admin-service";
 import { SupabaseAuthService } from "@/services/supabase-auth-service";
 import { HTU_FACULTIES, HTU_DEPARTMENTS, HTU_CATEGORIES, getDepartmentsByFaculty } from "@/lib/constants/faculties-departments";
+import { extractStudentIdFromEmail } from "@/lib/utils/student";
 
 const authService = new SupabaseAuthService();
 
@@ -54,14 +55,16 @@ export default function StudentSubmitProjectPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
 
-  // Auto-populate logged in student name if available
+  // Auto-populate logged in student name and student ID if available
   React.useEffect(() => {
     async function loadUserData() {
       const user = await authService.getCurrentUser();
       if (user) {
+        const derivedStudentId = user.studentId || extractStudentIdFromEmail(user.email || "");
         setFormData((prev) => ({
           ...prev,
           studentName: prev.studentName || user.name || "",
+          studentId: prev.studentId || derivedStudentId || "",
         }));
       }
       const cats = await adminService.getCategories();
@@ -164,11 +167,13 @@ export default function StudentSubmitProjectPage() {
       return;
     }
 
+    const derivedStudentId = user.studentId || extractStudentIdFromEmail(user.email || "");
+
     const newMember: GroupMemberInput = {
       userId: user.id,
       name: user.name,
       email: user.email,
-      studentId: user.studentId || "",
+      studentId: derivedStudentId,
     };
 
     setGroupMembers((prev) => [...prev, newMember]);
@@ -180,10 +185,13 @@ export default function StudentSubmitProjectPage() {
     if (!memberSearchQuery.includes("@")) return;
     if (groupMembers.some((m) => m.email.toLowerCase() === memberSearchQuery.toLowerCase())) return;
 
+    const emailTrimmed = memberSearchQuery.trim();
+    const derivedStudentId = extractStudentIdFromEmail(emailTrimmed);
+
     const newMember: GroupMemberInput = {
-      name: memberSearchQuery.split("@")[0],
-      email: memberSearchQuery.trim(),
-      studentId: "",
+      name: emailTrimmed.split("@")[0],
+      email: emailTrimmed,
+      studentId: derivedStudentId,
     };
 
     setGroupMembers((prev) => [...prev, newMember]);

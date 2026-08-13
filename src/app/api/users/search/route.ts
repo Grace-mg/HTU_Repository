@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { extractStudentIdFromEmail } from "@/lib/utils/student";
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
           id: p.id,
           name: p.full_name,
           email: p.email,
+          studentId: extractStudentIdFromEmail(p.email),
         });
       });
     }
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
       const emailMatch = u.email?.toLowerCase().includes(lowerQuery);
       const name = u.user_metadata?.full_name || u.email?.split("@")[0] || "Student User";
       const nameMatch = name.toLowerCase().includes(lowerQuery);
-      const studentId = u.user_metadata?.student_id || u.user_metadata?.index_number;
+      const studentId = u.user_metadata?.student_id || u.user_metadata?.index_number || extractStudentIdFromEmail(u.email || "");
 
       if ((emailMatch || nameMatch) && u.email) {
         const existing = resultsMap.get(u.id);
@@ -50,7 +52,7 @@ export async function GET(request: NextRequest) {
           id: u.id,
           name: existing?.name || name,
           email: u.email,
-          studentId: studentId || existing?.studentId,
+          studentId: studentId || existing?.studentId || extractStudentIdFromEmail(u.email),
         });
       }
     });

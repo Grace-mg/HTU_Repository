@@ -13,8 +13,7 @@ vi.mock("next/navigation", () => ({
 describe("Phase 3 Layout & Navigation Tests", () => {
   it("renders PublicHeader with logo and navigation links", () => {
     render(<PublicHeader />);
-    expect(screen.getAllByText("Project")[0]).toBeDefined();
-    expect(screen.getAllByText("HUB")[0]).toBeDefined();
+    expect(screen.getByText("PROJECT-HUB")).toBeDefined();
     expect(screen.getByText("Home")).toBeDefined();
     expect(screen.getByText("Browse")).toBeDefined();
     expect(screen.getByText("About")).toBeDefined();

@@ -2,6 +2,7 @@ import { AuthService } from "@/services/contracts/auth-service";
 import { User, AuthSession } from "@/types/auth";
 import { LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput } from "@/lib/validation/auth";
 import { createBrowserClient } from "@/lib/supabase/client";
+import { extractStudentIdFromEmail } from "@/lib/utils/student";
 
 function formatEmailToName(email: string): string {
   if (!email) return "User";
@@ -55,6 +56,7 @@ export class SupabaseAuthService implements AuthService {
     const now = new Date().toISOString();
     const role = input.email.includes("admin") || input.email.includes("wonderdogbe595") ? "ADMIN" : "USER";
     const userName = storedName || formatEmailToName(input.email);
+    const studentId = extractStudentIdFromEmail(input.email);
 
     const fallbackSession: AuthSession = {
       accessToken: `local-access-token-${Date.now()}`,
@@ -64,6 +66,7 @@ export class SupabaseAuthService implements AuthService {
         email: input.email,
         name: userName,
         role,
+        studentId,
         createdAt: now,
         updatedAt: now,
       },
@@ -107,12 +110,15 @@ export class SupabaseAuthService implements AuthService {
       const finalUserName = user?.user_metadata?.full_name || user?.user_metadata?.name || storedName || formatEmailToName(input.email);
       const finalRole = (user?.user_metadata?.role as "ADMIN" | "USER") || role;
 
+      const finalStudentId = user?.user_metadata?.student_id || user?.user_metadata?.index_number || extractStudentIdFromEmail(input.email);
+
       if (typeof window !== "undefined") {
         const userObj = {
           id: user?.id || "user-id",
           email: user?.email || input.email,
           name: finalUserName,
           role: finalRole,
+          studentId: finalStudentId,
           createdAt: user?.created_at || now,
           updatedAt: now,
         };
@@ -131,6 +137,7 @@ export class SupabaseAuthService implements AuthService {
           email: user?.email || input.email,
           name: finalUserName,
           role: finalRole,
+          studentId: finalStudentId,
           createdAt: user?.created_at || now,
           updatedAt: now,
         },
@@ -320,12 +327,14 @@ export class SupabaseAuthService implements AuthService {
       }
 
       const userName = user.user_metadata?.full_name || user.user_metadata?.name || storedName || formatEmailToName(user.email || "");
+      const studentId = user.user_metadata?.student_id || user.user_metadata?.index_number || extractStudentIdFromEmail(user.email || "");
 
       return {
         id: user.id,
         email: user.email || "",
         name: userName,
         role: (user.user_metadata?.role as "ADMIN" | "USER") || "USER",
+        studentId,
         createdAt: user.created_at || now,
         updatedAt: now,
       };
@@ -372,6 +381,7 @@ export class SupabaseAuthService implements AuthService {
       }
 
       const userName = user.user_metadata?.full_name || user.user_metadata?.name || storedName || formatEmailToName(user.email || "");
+      const studentId = user.user_metadata?.student_id || user.user_metadata?.index_number || extractStudentIdFromEmail(user.email || "");
 
       return {
         accessToken: session.access_token,
@@ -381,6 +391,7 @@ export class SupabaseAuthService implements AuthService {
           email: session.user.email || "",
           name: userName,
           role: (session.user.role as "ADMIN" | "USER") || (session.user.user_metadata?.role as "ADMIN" | "USER") || "USER",
+          studentId,
           createdAt: session.user.created_at || now,
           updatedAt: now,
         },
