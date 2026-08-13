@@ -161,7 +161,6 @@ export class SupabaseAuthService implements AuthService {
   async register(input: RegisterInput): Promise<User> {
     const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
     const now = new Date().toISOString();
-    const emailLower = input.email.toLowerCase();
 
     const fallbackUser: User = {
       id: `usr-${Date.now()}`,
@@ -171,14 +170,6 @@ export class SupabaseAuthService implements AuthService {
       createdAt: now,
       updatedAt: now,
     };
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackUser));
-      localStorage.setItem("current_user", JSON.stringify(fallbackUser));
-      document.cookie = `auth-token=user-token-${Date.now()}; path=/; max-age=604800; SameSite=Lax`;
-      document.cookie = `user-role=USER; path=/; max-age=604800; SameSite=Lax`;
-      document.cookie = `user-name=${encodeURIComponent(input.name)}; path=/; max-age=604800; SameSite=Lax`;
-    }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     if (!supabaseUrl || supabaseUrl.includes("placeholder")) {

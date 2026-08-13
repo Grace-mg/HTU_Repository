@@ -54,7 +54,7 @@ describe("Phase 8 Authentication Pages & Session Workflow Tests", () => {
   it("renders Verify Email page correctly", () => {
     render(<VerifyEmailPage />);
     expect(screen.getByRole("heading", { name: /enter verification code/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /resend 6-digit code/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /resend 8-digit code/i })).toBeInTheDocument();
   });
 });
 

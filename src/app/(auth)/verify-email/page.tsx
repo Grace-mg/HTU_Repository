@@ -16,7 +16,7 @@ export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const targetEmail = searchParams.get("email") || "";
 
-  const [otp, setOtp] = React.useState<string[]>(["", "", "", "", "", ""]);
+  const [otp, setOtp] = React.useState<string[]>(["", "", "", "", "", "", "", ""]);
   const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
   const [isVerifying, setIsVerifying] = React.useState(false);
   const [isResending, setIsResending] = React.useState(false);
@@ -32,12 +32,12 @@ export default function VerifyEmailPage() {
 
     if (cleanValue.length > 1) {
       // User pasted multiple digits
-      const digits = cleanValue.slice(0, 6).split("");
-      for (let i = 0; i < 6; i++) {
+      const digits = cleanValue.slice(0, 8).split("");
+      for (let i = 0; i < 8; i++) {
         newOtp[i] = digits[i] || "";
       }
       setOtp(newOtp);
-      const nextIndex = Math.min(digits.length, 5);
+      const nextIndex = Math.min(digits.length, 7);
       inputRefs.current[nextIndex]?.focus();
       return;
     }
@@ -46,7 +46,7 @@ export default function VerifyEmailPage() {
     setOtp(newOtp);
 
     // Auto focus next input
-    if (cleanValue && index < 5) {
+    if (cleanValue && index < 7) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -59,16 +59,16 @@ export default function VerifyEmailPage() {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, 6);
+    const pastedData = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, 8);
     if (!pastedData) return;
 
     const newOtp = [...otp];
     pastedData.split("").forEach((char, idx) => {
-      if (idx < 6) newOtp[idx] = char;
+      if (idx < 8) newOtp[idx] = char;
     });
     setOtp(newOtp);
 
-    const nextIndex = Math.min(pastedData.length, 5);
+    const nextIndex = Math.min(pastedData.length, 7);
     inputRefs.current[nextIndex]?.focus();
   };
 
@@ -78,8 +78,8 @@ export default function VerifyEmailPage() {
     setSuccessMessage(null);
 
     const fullCode = otp.join("");
-    if (fullCode.length !== 6) {
-      setErrorMessage("Please enter the complete 6-digit verification code.");
+    if (fullCode.length !== 8) {
+      setErrorMessage("Please enter the complete 8-digit verification code.");
       return;
     }
 
@@ -116,7 +116,7 @@ export default function VerifyEmailPage() {
         throw error;
       }
 
-      setSuccessMessage(`A new 6-digit verification code has been sent to ${emailToResend}.`);
+      setSuccessMessage(`A new 8-digit verification code has been sent to ${emailToResend}.`);
     } catch (err: any) {
       setErrorMessage(err.message || "Unable to resend verification code. Please try again shortly.");
     } finally {
@@ -134,7 +134,7 @@ export default function VerifyEmailPage() {
       <div className="space-y-1.5">
         <h1 className="text-xl font-bold tracking-tight text-foreground">Enter Verification Code</h1>
         <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-          We&apos;ve sent a 6-digit verification code to{" "}
+          We&apos;ve sent an 8-digit verification code to{" "}
           <span className="font-semibold text-foreground">{targetEmail || "your institutional email"}</span>.
         </p>
       </div>
@@ -163,7 +163,7 @@ export default function VerifyEmailPage() {
 
       {/* OTP Code Form */}
       <form onSubmit={handleVerify} className="space-y-5 pt-1">
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2">
           {otp.map((digit, index) => (
             <Input
               key={index}
@@ -177,7 +177,7 @@ export default function VerifyEmailPage() {
               onChange={(e) => handleDigitChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              className="w-10 h-12 text-center text-lg font-bold tracking-widest border-border focus:border-blue-600 focus:ring-blue-600"
+              className="w-8 sm:w-10 h-11 sm:h-12 text-center text-base sm:text-lg font-bold tracking-widest px-0 border-border focus:border-blue-600 focus:ring-blue-600"
               aria-label={`Digit ${index + 1}`}
             />
           ))}
@@ -185,7 +185,7 @@ export default function VerifyEmailPage() {
 
         <Button
           type="submit"
-          disabled={isVerifying || otp.join("").length !== 6}
+          disabled={isVerifying || otp.join("").length !== 8}
           className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-2"
         >
           {isVerifying ? (
@@ -212,7 +212,7 @@ export default function VerifyEmailPage() {
           className="w-full h-9 text-xs font-semibold gap-2 border-border"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isResending ? "animate-spin" : ""}`} />
-          {isResending ? "Sending Code..." : "Resend 6-Digit Code"}
+          {isResending ? "Sending Code..." : "Resend 8-Digit Code"}
         </Button>
       </div>
 
