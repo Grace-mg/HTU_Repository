@@ -78,7 +78,7 @@ export function MobileNavDrawer({
           {/* Drawer Top Header */}
           <div className="flex items-center justify-between border-b border-border pb-4">
             <Link
-              href="/"
+              href={currentUser ? (currentUser.role === "ADMIN" ? "/admin" : "/dashboard") : "/"}
               className="flex items-center gap-2 text-base font-bold tracking-tight text-foreground"
               onClick={onClose}
             >

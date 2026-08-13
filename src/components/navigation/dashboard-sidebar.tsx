@@ -207,7 +207,7 @@ export function DashboardSidebar({ mode }: DashboardSidebarProps) {
       {/* Brand & Collapse Header */}
       <div className="flex h-14 items-center justify-between px-3 border-b border-border">
         <Link
-          href="/"
+          href={mode === "admin" ? "/admin" : "/dashboard"}
           className={cn(
             "flex items-center gap-2 font-bold text-foreground overflow-hidden whitespace-nowrap",
             collapsed ? "justify-center w-full" : "px-2"

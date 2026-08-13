@@ -65,7 +65,7 @@ export default function ProfilePage() {
       if (formData.email) {
         localStorage.setItem(`user_profile_${formData.email.toLowerCase()}`, JSON.stringify(currentObj));
       }
-      document.cookie = `user-name=${encodeURIComponent(formData.name)}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `user-name=${encodeURIComponent(formData.name)}; path=/; SameSite=Lax`;
       window.dispatchEvent(new Event("storage"));
     }
 

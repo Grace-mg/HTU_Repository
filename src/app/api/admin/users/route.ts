@@ -6,34 +6,45 @@ export async function GET() {
     const adminSupabase = createAdminClient();
 
     // 1. Fetch users directly from Supabase auth.users system table using Service Role key
-    const { data: authData, error: authError } = await adminSupabase.auth.admin.listUsers();
+    const { data: authData } = await adminSupabase.auth.admin.listUsers();
 
     // 2. Fetch profiles from public.profiles table
     const { data: profilesData } = await adminSupabase
       .from("profiles")
       .select("*");
 
-    const profilesMap = new Map<string, any>();
+    const userMap = new Map<string, any>();
+
+    // Add profiles
     if (profilesData) {
-      profilesData.forEach((p) => profilesMap.set(p.id, p));
+      profilesData.forEach((p) => {
+        userMap.set(p.id, {
+          id: p.id,
+          email: p.email || "N/A",
+          full_name: p.full_name || p.name || (p.email ? p.email.split("@")[0] : "User"),
+          role: p.role || "USER",
+          created_at: p.created_at,
+          last_sign_in_at: null,
+        });
+      });
     }
 
-    if (authError || !authData || !authData.users) {
-      return NextResponse.json({ users: profilesData || [] });
+    // Merge auth users
+    if (authData && authData.users) {
+      authData.users.forEach((u) => {
+        const existing = userMap.get(u.id);
+        userMap.set(u.id, {
+          id: u.id,
+          email: u.email || existing?.email || "N/A",
+          full_name: existing?.full_name || u.user_metadata?.full_name || u.user_metadata?.name || (u.email ? u.email.split("@")[0] : "User"),
+          role: existing?.role || u.user_metadata?.role || "USER",
+          created_at: u.created_at || existing?.created_at,
+          last_sign_in_at: u.last_sign_in_at || existing?.last_sign_in_at,
+        });
+      });
     }
 
-    const mergedUsers = authData.users.map((u) => {
-      const profile = profilesMap.get(u.id);
-      return {
-        id: u.id,
-        email: u.email || profile?.email || "N/A",
-        full_name: profile?.full_name || u.user_metadata?.full_name || u.email?.split("@")[0] || "User",
-        role: profile?.role || u.user_metadata?.role || "USER",
-        created_at: u.created_at || profile?.created_at,
-        last_sign_in_at: u.last_sign_in_at,
-      };
-    });
-
+    const mergedUsers = Array.from(userMap.values());
     return NextResponse.json({ users: mergedUsers });
   } catch (err: any) {
     console.error("[API Get Users Error]", err);

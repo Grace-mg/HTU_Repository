@@ -7,7 +7,7 @@ import { sanitizeRedirectUrl, getHomeRouteForRole } from "@/lib/auth/permissions
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
-  // Read auth cookie or session placeholder
+  // Read auth cookie
   const authToken = request.cookies.get("sb-access-token")?.value || request.cookies.get("auth-token")?.value;
   const userRole = request.cookies.get("user-role")?.value as "ADMIN" | "USER" | undefined;
   const isAuthenticated = Boolean(authToken);
@@ -21,7 +21,6 @@ export async function middleware(request: NextRequest) {
     }
 
     if (userRole !== "ADMIN") {
-      // Non-admin attempting to access admin route -> redirect to user dashboard
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }

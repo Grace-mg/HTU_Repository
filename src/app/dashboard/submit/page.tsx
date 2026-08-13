@@ -213,32 +213,43 @@ export default function StudentSubmitProjectPage() {
     const result = createRepositoryRecordSchema.safeParse(fullData);
 
     if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
+      const fieldErrors: Record<string, string> = {
+        form: "Please review and correct the highlighted fields below before submitting.",
+      };
       result.error.issues.forEach((issue) => {
         if (issue.path[0]) {
           fieldErrors[issue.path[0].toString()] = issue.message;
         }
       });
       setErrors(fieldErrors);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     setIsSubmitting(true);
-    // Student submissions enter as PENDING_HOD for supervisor / HOD approval queue
-    const submissionData: CreateRepositoryRecordInput = {
-      ...formData,
-      groupMembers,
-      status: "PENDING_HOD",
-    };
+    try {
+      // Student submissions enter as PENDING_HOD for supervisor / HOD approval queue
+      const submissionData: CreateRepositoryRecordInput = {
+        ...formData,
+        groupMembers,
+        status: "PENDING_HOD",
+      };
 
-    const created = await adminService.createRecord(submissionData);
-    setIsSubmitting(false);
+      const created = await adminService.createRecord(submissionData);
+      setIsSubmitting(false);
 
-    if (created) {
-      setSuccess(true);
-      setTimeout(() => router.push("/dashboard/projects"), 1500);
-    } else {
-      setErrors({ form: "Failed to submit project. Please verify all fields and try again." });
+      if (created) {
+        setSuccess(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => router.push("/dashboard/projects"), 1500);
+      } else {
+        setErrors({ form: "Failed to submit project. Please verify all fields and try again." });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrors({ form: err?.message || "Failed to submit project. Please verify all fields and try again." });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 

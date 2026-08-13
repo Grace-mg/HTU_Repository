@@ -6,6 +6,8 @@ import RegisterPage from "@/app/(auth)/register/page";
 import ForgotPasswordPage from "@/app/(auth)/forgot-password/page";
 import VerifyEmailPage from "@/app/(auth)/verify-email/page";
 
+import HomePage from "@/app/(public)/page";
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   usePathname: () => "/login",
@@ -15,8 +17,15 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-describe("Phase 8 Authentication Pages Tests", () => {
-  it("renders Login page correctly", () => {
+describe("Phase 8 Authentication Pages & Session Workflow Tests", () => {
+  it("renders Landing Page with Sign In button pointing to authentication session (/login)", () => {
+    render(<HomePage />);
+    const signInLinks = screen.getAllByRole("link", { name: /sign in/i });
+    expect(signInLinks.length).toBeGreaterThan(0);
+    expect(signInLinks[0].getAttribute("href")).toBe("/login");
+  });
+
+  it("renders Login page correctly as the authentication session entry point", () => {
     render(<LoginPage />);
     expect(screen.getByRole("heading", { name: /sign in/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
@@ -48,3 +57,4 @@ describe("Phase 8 Authentication Pages Tests", () => {
     expect(screen.getByRole("button", { name: /resend verification email/i })).toBeInTheDocument();
   });
 });
+

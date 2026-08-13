@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const { data, error } = await adminSupabase
       .from("repository_records")
       .insert(rowData)
-      .select("*, faculties(name), departments(name), categories(name)")
+      .select("*")
       .single();
 
     if (error) {

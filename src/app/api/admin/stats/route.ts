@@ -14,9 +14,21 @@ export async function GET() {
       .select("*", { count: "exact", head: true })
       .in("status", ["PENDING_HOD", "PENDING_DEAN"]);
 
-    const { count: totalUsers } = await adminSupabase
-      .from("profiles")
-      .select("*", { count: "exact", head: true });
+    // Count total unique users combining auth.users and public.profiles
+    const userIds = new Set<string>();
+    try {
+      const { data: authData } = await adminSupabase.auth.admin.listUsers();
+      if (authData && authData.users) {
+        authData.users.forEach((u) => userIds.add(u.id));
+      }
+    } catch {}
+
+    try {
+      const { data: profilesData } = await adminSupabase.from("profiles").select("id");
+      if (profilesData) {
+        profilesData.forEach((p) => userIds.add(p.id));
+      }
+    } catch {}
 
     const { data: viewsData } = await adminSupabase
       .from("repository_records")
@@ -29,7 +41,7 @@ export async function GET() {
       stats: {
         totalRecords: totalRecords || 0,
         pendingApprovals: pendingApprovals || 0,
-        totalUsers: totalUsers || 0,
+        totalUsers: userIds.size,
         totalViews: totalViews || 0,
       },
     });

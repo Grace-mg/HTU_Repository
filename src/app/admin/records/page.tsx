@@ -56,6 +56,7 @@ export default function AdminRecordsPage() {
 
   const handleDeleteRecord = async (id: string) => {
     if (confirm("Are you sure you want to delete this repository record?")) {
+      await adminService.deleteRecord(id);
       setRecords((prev) => prev.filter((r) => r.id !== id));
     }
   };

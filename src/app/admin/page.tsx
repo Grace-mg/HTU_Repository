@@ -79,7 +79,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="w-full space-y-8">
-      {/* Header Banner Card with Add New Record Button inside Card */}
       <PageHeader
         title="Admin Control Panel"
         description="System metrics overview, record approvals queue, and repository management tools."

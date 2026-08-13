@@ -3,15 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Sun, Moon, Laptop } from "lucide-react";
+import { Menu, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MobileNavDrawer, NavLinkItem } from "@/components/navigation/mobile-nav-drawer";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { applyTheme } from "@/lib/theme";
 
@@ -107,11 +101,17 @@ export function PublicHeader() {
             })}
           </nav>
 
-          {/* Right Action Area (Sign Up & Theme Toggle) */}
+          {/* Right Action Area (Sign In, Sign Up & Theme Toggle) */}
           <div className="flex items-center gap-3">
             <HeaderThemeToggle />
 
-            <div className="hidden sm:flex items-center">
+            <div className="hidden sm:flex items-center gap-3">
+              <Link
+                href="/login"
+                className="text-xs font-bold tracking-wider uppercase text-foreground/80 hover:text-blue-600 transition-colors px-3 py-2"
+              >
+                Sign In
+              </Link>
               <Link
                 href="/register"
                 className="inline-flex items-center justify-center rounded-full border-2 border-blue-600 px-6 py-2 text-xs font-bold tracking-wider uppercase text-blue-600 transition-all duration-200 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
@@ -148,3 +148,5 @@ export function PublicHeader() {
     </>
   );
 }
+
+

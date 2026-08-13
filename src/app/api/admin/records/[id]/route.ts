@@ -84,3 +84,31 @@ export async function PATCH(
     return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    if (!id) {
+      return NextResponse.json({ error: "Record ID is required." }, { status: 400 });
+    }
+
+    const adminSupabase = createAdminClient();
+    const { error } = await adminSupabase
+      .from("repository_records")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("[API DELETE Record Error]", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("[API DELETE Record Server Error]", err);
+    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
+  }
+}

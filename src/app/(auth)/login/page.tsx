@@ -51,8 +51,8 @@ export default function LoginPage() {
       const session = await authService.login(formData);
 
       // Set auth cookies for middleware route protection
-      document.cookie = `auth-token=${session.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-      document.cookie = `user-role=${session.user.role}; path=/; max-age=604800; SameSite=Lax`;
+      document.cookie = `auth-token=${session.accessToken}; path=/; SameSite=Lax`;
+      document.cookie = `user-role=${session.user.role}; path=/; SameSite=Lax`;
 
       const targetPath = redirectTo
         ? sanitizeRedirectUrl(redirectTo)

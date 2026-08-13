@@ -53,3 +53,32 @@ describe("Phase 9 Authentication & Permission Security Helpers Tests", () => {
     expect(sanitizeRedirectUrl(null)).toBe("/dashboard");
   });
 });
+
+import { NextRequest } from "next/server";
+import { middleware } from "@/middleware";
+
+describe("Landing Page Access Control Middleware Tests", () => {
+  it("allows all users to open the landing page / directly", async () => {
+    const req = new NextRequest("http://localhost:3000/");
+    const res = await middleware(req);
+    expect(res?.headers.get("location")).toBeNull();
+  });
+
+  it("redirects unauthenticated users trying to access protected dashboard routes to /login", async () => {
+    const req = new NextRequest("http://localhost:3000/dashboard");
+    const res = await middleware(req);
+    expect(res?.status).toBe(307);
+    expect(res?.headers.get("location")).toBe("http://localhost:3000/login?redirectTo=%2Fdashboard");
+  });
+
+  it("redirects authenticated users on /login to their appropriate dashboard", async () => {
+    const req = new NextRequest("http://localhost:3000/login");
+    req.cookies.set("auth-token", "valid-user-token");
+    req.cookies.set("user-role", "USER");
+
+    const res = await middleware(req);
+    expect(res?.status).toBe(307);
+    expect(res?.headers.get("location")).toBe("http://localhost:3000/dashboard");
+  });
+});
+

@@ -77,9 +77,9 @@ export class SupabaseAuthService implements AuthService {
       if (typeof window !== "undefined") {
         localStorage.setItem("current_user", JSON.stringify(fallbackSession.user));
         localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackSession.user));
-        document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-        document.cookie = `user-role=${role}; path=/; max-age=604800; SameSite=Lax`;
-        document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; SameSite=Lax`;
+        document.cookie = `user-role=${role}; path=/; SameSite=Lax`;
+        document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; SameSite=Lax`;
       }
       return fallbackSession;
     }
@@ -95,9 +95,9 @@ export class SupabaseAuthService implements AuthService {
           if (typeof window !== "undefined") {
             localStorage.setItem("current_user", JSON.stringify(fallbackSession.user));
             localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackSession.user));
-            document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-            document.cookie = `user-role=${role}; path=/; max-age=604800; SameSite=Lax`;
-            document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+            document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; SameSite=Lax`;
+            document.cookie = `user-role=${role}; path=/; SameSite=Lax`;
+            document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; SameSite=Lax`;
           }
           return fallbackSession;
         }
@@ -124,9 +124,9 @@ export class SupabaseAuthService implements AuthService {
         };
         localStorage.setItem("current_user", JSON.stringify(userObj));
         localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(userObj));
-        document.cookie = `auth-token=${session?.access_token || fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-        document.cookie = `user-role=${finalRole}; path=/; max-age=604800; SameSite=Lax`;
-        document.cookie = `user-name=${encodeURIComponent(finalUserName)}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `auth-token=${session?.access_token || fallbackSession.accessToken}; path=/; SameSite=Lax`;
+        document.cookie = `user-role=${finalRole}; path=/; SameSite=Lax`;
+        document.cookie = `user-name=${encodeURIComponent(finalUserName)}; path=/; SameSite=Lax`;
       }
 
       return {
@@ -148,9 +148,9 @@ export class SupabaseAuthService implements AuthService {
         if (typeof window !== "undefined") {
           localStorage.setItem("current_user", JSON.stringify(fallbackSession.user));
           localStorage.setItem(`user_profile_${emailLower}`, JSON.stringify(fallbackSession.user));
-          document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; max-age=604800; SameSite=Lax`;
-          document.cookie = `user-role=${role}; path=/; max-age=604800; SameSite=Lax`;
-          document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; max-age=604800; SameSite=Lax`;
+          document.cookie = `auth-token=${fallbackSession.accessToken}; path=/; SameSite=Lax`;
+          document.cookie = `user-role=${role}; path=/; SameSite=Lax`;
+          document.cookie = `user-name=${encodeURIComponent(userName)}; path=/; SameSite=Lax`;
         }
         return fallbackSession;
       }

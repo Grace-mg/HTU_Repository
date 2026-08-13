@@ -108,36 +108,84 @@ export class SupabaseRepositoryService {
 
     const { data, count, error } = await query;
 
-    if (error || !data) {
-      return { records: [], total: 0 };
+    let records: RepositoryRecord[] = [];
+    if (!error && data) {
+      records = data.map(mapRowToRecord);
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const localList: RepositoryRecord[] = JSON.parse(stored);
+          const targetStatus = filters.status || ["PUBLISHED", "APPROVED"];
+          const matchingLocals = localList.filter((r) => {
+            if (Array.isArray(targetStatus)) {
+              return targetStatus.includes(r.status);
+            }
+            return r.status === targetStatus;
+          });
+          const existingIds = new Set(records.map((r) => r.id));
+          const newLocals = matchingLocals.filter((l) => !existingIds.has(l.id));
+          records = [...newLocals, ...records];
+        }
+      } catch {}
     }
 
     return {
-      records: data.map(mapRowToRecord),
-      total: count || data.length,
+      records,
+      total: records.length,
     };
   }
 
   async getRecordBySlug(slug: string): Promise<RepositoryRecord | null> {
-    const { data, error } = await this.client
-      .from("repository_records")
-      .select("*, faculties(name), departments(name), categories(name)")
-      .eq("slug", slug)
-      .single();
+    try {
+      const { data, error } = await this.client
+        .from("repository_records")
+        .select("*, faculties(name), departments(name), categories(name)")
+        .eq("slug", slug)
+        .single();
 
-    if (error || !data) return null;
-    return mapRowToRecord(data);
+      if (!error && data) return mapRowToRecord(data);
+    } catch {}
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const localList: RepositoryRecord[] = JSON.parse(stored);
+          const found = localList.find((r) => r.slug === slug);
+          if (found) return found;
+        }
+      } catch {}
+    }
+
+    return null;
   }
 
   async getRecordById(id: string): Promise<RepositoryRecord | null> {
-    const { data, error } = await this.client
-      .from("repository_records")
-      .select("*, faculties(name), departments(name), categories(name)")
-      .eq("id", id)
-      .single();
+    try {
+      const { data, error } = await this.client
+        .from("repository_records")
+        .select("*, faculties(name), departments(name), categories(name)")
+        .eq("id", id)
+        .single();
 
-    if (error || !data) return null;
-    return mapRowToRecord(data);
+      if (!error && data) return mapRowToRecord(data);
+    } catch {}
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const localList: RepositoryRecord[] = JSON.parse(stored);
+          const found = localList.find((r) => r.id === id);
+          if (found) return found;
+        }
+      } catch {}
+    }
+
+    return null;
   }
 
   async incrementViews(id: string): Promise<void> {

@@ -3,6 +3,7 @@ import { mapRowToRecord } from "@/services/supabase-repository-service";
 import { RepositoryRecord, RecordStatus } from "@/types/repository";
 import { CreateRepositoryRecordInput } from "@/lib/validation/repository";
 import { CreateDepartmentInput } from "@/lib/validation/department";
+import { HTU_FACULTIES, HTU_DEPARTMENTS, HTU_CATEGORIES } from "@/lib/constants/faculties-departments";
 
 export interface AdminStats {
   totalRecords: number;
@@ -15,92 +16,157 @@ export class SupabaseAdminService {
   private client = createBrowserClient();
 
   async getAdminStats(): Promise<AdminStats> {
+    let stats: AdminStats | null = null;
+
     if (typeof window !== "undefined") {
       try {
         const res = await fetch("/api/admin/stats");
         if (res.ok) {
           const json = await res.json();
-          if (json.stats) return json.stats;
+          if (json.stats) stats = json.stats;
         }
       } catch (err) {
         console.warn("[supabase-admin-service] /api/admin/stats fetch failed, attempting client fallback", err);
       }
     }
 
-    try {
-      const { count: totalRecords } = await this.client
-        .from("repository_records")
-        .select("*", { count: "exact", head: true });
+    if (!stats) {
+      try {
+        const { count: totalRecords } = await this.client
+          .from("repository_records")
+          .select("*", { count: "exact", head: true });
 
-      const { count: pendingApprovals } = await this.client
-        .from("repository_records")
-        .select("*", { count: "exact", head: true })
-        .in("status", ["PENDING_HOD", "PENDING_DEAN"]);
+        const { count: pendingApprovals } = await this.client
+          .from("repository_records")
+          .select("*", { count: "exact", head: true })
+          .in("status", ["PENDING_HOD", "PENDING_DEAN"]);
 
-      const { count: totalUsers } = await this.client
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
+        let usersCount = 0;
+        try {
+          const usersList = await this.getUsers();
+          usersCount = usersList ? usersList.length : 0;
+        } catch {}
 
-      const { data: viewsData } = await this.client
-        .from("repository_records")
-        .select("views_count");
+        const { data: viewsData } = await this.client
+          .from("repository_records")
+          .select("views_count");
 
-      const totalViews = viewsData ? viewsData.reduce((acc, curr) => acc + (curr.views_count || 0), 0) : 0;
+        const totalViews = viewsData ? viewsData.reduce((acc, curr) => acc + (curr.views_count || 0), 0) : 0;
 
-      return {
-        totalRecords: totalRecords || 0,
-        pendingApprovals: pendingApprovals || 0,
-        totalUsers: totalUsers || 0,
-        totalViews: totalViews || 0,
-      };
-    } catch {
-      return { totalRecords: 0, pendingApprovals: 0, totalUsers: 0, totalViews: 0 };
+        stats = {
+          totalRecords: totalRecords || 0,
+          pendingApprovals: pendingApprovals || 0,
+          totalUsers: usersCount,
+          totalViews: totalViews || 0,
+        };
+      } catch {
+        stats = { totalRecords: 0, pendingApprovals: 0, totalUsers: 0, totalViews: 0 };
+      }
     }
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const localList: RepositoryRecord[] = JSON.parse(stored);
+          const pendingCount = localList.filter(
+            (r) => r.status === "PENDING_HOD" || r.status === "PENDING_DEAN"
+          ).length;
+          stats.totalRecords += localList.length;
+          stats.pendingApprovals += pendingCount;
+        }
+      } catch {}
+    }
+
+    return stats;
   }
 
   async getAllRecords(): Promise<RepositoryRecord[]> {
+    let records: RepositoryRecord[] = [];
     if (typeof window !== "undefined") {
       try {
         const res = await fetch("/api/admin/records");
         if (res.ok) {
           const json = await res.json();
-          if (json.records) return json.records.map(mapRowToRecord);
+          if (json.records) records = json.records.map(mapRowToRecord);
         }
       } catch (err) {
         console.warn("[supabase-admin-service] /api/admin/records fetch failed, attempting client fallback", err);
       }
     }
 
-    const { data, error } = await this.client
-      .from("repository_records")
-      .select("*, faculties(name), departments(name), categories(name)")
-      .order("created_at", { ascending: false });
+    if (records.length === 0) {
+      try {
+        const { data, error } = await this.client
+          .from("repository_records")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-    if (error || !data) return [];
-    return data.map(mapRowToRecord);
+        if (!error && data) {
+          records = data.map(mapRowToRecord);
+        }
+      } catch {}
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const localList: RepositoryRecord[] = JSON.parse(stored);
+          const existingIds = new Set(records.map((r) => r.id));
+          const newLocals = localList.filter((l) => !existingIds.has(l.id));
+          records = [...newLocals, ...records];
+        }
+      } catch {}
+    }
+
+    return records;
   }
 
   async getPendingApprovals(): Promise<RepositoryRecord[]> {
+    let records: RepositoryRecord[] = [];
     if (typeof window !== "undefined") {
       try {
         const res = await fetch("/api/admin/records?pending=true");
         if (res.ok) {
           const json = await res.json();
-          if (json.records) return json.records.map(mapRowToRecord);
+          if (json.records) records = json.records.map(mapRowToRecord);
         }
       } catch (err) {
         console.warn("[supabase-admin-service] /api/admin/records?pending=true fetch failed, attempting client fallback", err);
       }
     }
 
-    const { data, error } = await this.client
-      .from("repository_records")
-      .select("*, faculties(name), departments(name), categories(name)")
-      .in("status", ["PENDING_HOD", "PENDING_DEAN"])
-      .order("created_at", { ascending: false });
+    if (records.length === 0) {
+      try {
+        const { data, error } = await this.client
+          .from("repository_records")
+          .select("*")
+          .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING", "SUBMITTED", "DRAFT"])
+          .order("created_at", { ascending: false });
 
-    if (error || !data) return [];
-    return data.map(mapRowToRecord);
+        if (!error && data) {
+          records = data.map(mapRowToRecord);
+        }
+      } catch {}
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const localList: RepositoryRecord[] = JSON.parse(stored);
+          const pendingLocals = localList.filter(
+            (r) => r.status !== "PUBLISHED"
+          );
+          const existingIds = new Set(records.map((r) => r.id));
+          const newLocals = pendingLocals.filter((l) => !existingIds.has(l.id));
+          records = [...newLocals, ...records];
+        }
+      } catch {}
+    }
+
+    return records;
   }
 
   async getRecordById(id: string): Promise<RepositoryRecord | null> {
@@ -116,14 +182,30 @@ export class SupabaseAdminService {
       }
     }
 
-    const { data, error } = await this.client
-      .from("repository_records")
-      .select("*, faculties(name), departments(name), categories(name)")
-      .eq("id", id)
-      .single();
+    try {
+      const { data, error } = await this.client
+        .from("repository_records")
+        .select("*, faculties(name), departments(name), categories(name)")
+        .eq("id", id)
+        .single();
 
-    if (error || !data) return null;
-    return mapRowToRecord(data);
+      if (!error && data) {
+        return mapRowToRecord(data);
+      }
+    } catch {}
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const localList: RepositoryRecord[] = JSON.parse(stored);
+          const found = localList.find((r) => r.id === id);
+          if (found) return found;
+        }
+      } catch {}
+    }
+
+    return null;
   }
 
   async createRecord(input: CreateRepositoryRecordInput): Promise<RepositoryRecord | null> {
@@ -160,27 +242,93 @@ export class SupabaseAdminService {
       department_id: input.departmentId || null,
       category_id: input.categoryId || null,
       keywords: input.keywords || [],
+      group_members: input.groupMembers || [],
     };
 
     if (input.status === "PUBLISHED") {
       rowData.published_at = new Date().toISOString();
     }
 
-    const { data, error } = await this.client
-      .from("repository_records")
-      .insert(rowData)
-      .select("*, faculties(name), departments(name), categories(name)")
-      .single();
+    try {
+      const { data, error } = await this.client
+        .from("repository_records")
+        .insert(rowData)
+        .select("*, faculties(name), departments(name), categories(name)")
+        .single();
 
-    if (error) {
-      console.error("[supabase-admin-service] createRecord error:", error.message, error.details, error);
+      if (!error && data) {
+        return mapRowToRecord(data);
+      }
+      if (error) {
+        console.error("[supabase-admin-service] createRecord error:", error.message, error.details, error);
+      }
+    } catch (err) {
+      console.warn("[supabase-admin-service] client insert exception", err);
     }
 
-    if (error || !data) return null;
-    return mapRowToRecord(data);
+    // Local / Offline / Fallback mode support when database is unconfigured or unreachable
+    const now = new Date().toISOString();
+    const facultyName = HTU_FACULTIES.find((f) => f.id === input.facultyId)?.name || input.facultyId?.toUpperCase();
+    const departmentName = HTU_DEPARTMENTS.find((d) => d.id === input.departmentId)?.name || input.departmentId?.toUpperCase();
+    const categoryName = HTU_CATEGORIES.find((c) => c.id === input.categoryId)?.name || input.categoryId?.toUpperCase();
+
+    const fallbackRecord: RepositoryRecord = {
+      id: `rec-local-${Date.now()}`,
+      title: input.title,
+      slug,
+      recordType: input.recordType,
+      status: input.status,
+      abstract: input.abstract,
+      studentName: input.studentName,
+      studentId: input.studentId,
+      groupMembers: input.groupMembers || [],
+      supervisorName: input.supervisorName,
+      academicYear: input.academicYear || 2026,
+      facultyId: input.facultyId,
+      facultyName,
+      departmentId: input.departmentId,
+      departmentName,
+      categoryId: input.categoryId,
+      categoryName,
+      keywords: input.keywords || [],
+      viewsCount: 0,
+      downloadsCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        const list = stored ? JSON.parse(stored) : [];
+        localStorage.setItem("local_user_submissions", JSON.stringify([fallbackRecord, ...list]));
+      } catch (e) {
+        console.error("Failed to save local submission fallback", e);
+      }
+    }
+
+    return fallbackRecord;
   }
 
   async updateRecordStatus(id: string, status: RecordStatus): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const list: RepositoryRecord[] = JSON.parse(stored);
+          const idx = list.findIndex((r) => r.id === id);
+          if (idx !== -1) {
+            list[idx].status = status;
+            if (status === "PUBLISHED" || status === "APPROVED") {
+              list[idx].publishedAt = new Date().toISOString();
+            }
+            localStorage.setItem("local_user_submissions", JSON.stringify(list));
+            return true;
+          }
+        }
+      } catch {}
+    }
+
     try {
       const res = await fetch(`/api/admin/records/${encodeURIComponent(id)}`, {
         method: "PATCH",
@@ -203,6 +351,61 @@ export class SupabaseAdminService {
       .from("repository_records")
       .update(updateData)
       .eq("id", id);
+
+    return !error;
+  }
+
+  async deleteRecord(id: string): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const list: RepositoryRecord[] = JSON.parse(stored);
+          const filtered = list.filter((r) => r.id !== id);
+          localStorage.setItem("local_user_submissions", JSON.stringify(filtered));
+        }
+      } catch {}
+    }
+
+    try {
+      const res = await fetch(`/api/admin/records/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) return true;
+    } catch {}
+
+    const { error } = await this.client
+      .from("repository_records")
+      .delete()
+      .eq("id", id);
+
+    return !error;
+  }
+
+  clearLocalSubmissions(): void {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("local_user_submissions");
+      } catch {}
+    }
+  }
+
+  async clearAllRecords(): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("local_user_submissions");
+      } catch {}
+    }
+
+    try {
+      const res = await fetch("/api/admin/records", { method: "DELETE" });
+      if (res.ok) return true;
+    } catch {}
+
+    const { error } = await this.client
+      .from("repository_records")
+      .delete()
+      .neq("id", "");
 
     return !error;
   }
