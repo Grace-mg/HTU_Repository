@@ -36,7 +36,7 @@ export default function ProjectsPage() {
         recordType: "PROJECT",
         facultyId: facultyParam !== "all" ? facultyParam : undefined,
         departmentId: deptParam !== "all" ? deptParam : undefined,
-        academicYear: yearParam !== "all" ? yearParam : undefined,
+        academicYear: yearParam !== "all" ? Number(yearParam) : undefined,
         categoryId: categoryParam !== "all" ? categoryParam : undefined,
       });
       setRecords(res.records);

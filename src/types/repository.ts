@@ -55,7 +55,7 @@ export interface RepositoryFilters {
   facultyId?: string;
   departmentId?: string;
   categoryId?: string;
-  academicYear?: number;
+  academicYear?: number | string;
   keyword?: string;
   status?: RecordStatus;
   page?: number;
