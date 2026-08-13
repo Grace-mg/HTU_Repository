@@ -10,6 +10,9 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FolderKanban, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RepositoryRecordCard } from "@/components/projects/repository-record-card";
+import { RepositoryRecord } from "@/types/repository";
+import { repositoryService } from "@/services/supabase-repository-service";
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -22,7 +25,24 @@ export default function ProjectsPage() {
   const categoryParam = searchParams.get("category") || "all";
   const sortParam = searchParams.get("sort") || "newest";
 
+  const [records, setRecords] = React.useState<RepositoryRecord[]>([]);
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    async function loadProjects() {
+      const res = await repositoryService.getRecords({
+        query: query || undefined,
+        status: "PUBLISHED",
+        recordType: "PROJECT",
+        facultyId: facultyParam !== "all" ? facultyParam : undefined,
+        departmentId: deptParam !== "all" ? deptParam : undefined,
+        academicYear: yearParam !== "all" ? yearParam : undefined,
+        categoryId: categoryParam !== "all" ? categoryParam : undefined,
+      });
+      setRecords(res.records);
+    }
+    loadProjects();
+  }, [query, facultyParam, deptParam, yearParam, categoryParam]);
 
   const updateParams = React.useCallback(
     (updates: Record<string, string | null | undefined>) => {
@@ -140,21 +160,29 @@ export default function ProjectsPage() {
         )}
 
         <div className="lg:col-span-3 space-y-6">
-          <EmptyState
-            title="No Projects Uploaded Yet"
-            description="Engineering software builds and prototypes will appear here once submitted and approved by department admins."
-            icon={FolderKanban}
-            action={
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push("/projects")}
-                className="text-xs font-semibold"
-              >
-                Clear Search Filters
-              </Button>
-            }
-          />
+          {records.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {records.map((rec) => (
+                <RepositoryRecordCard key={rec.id} record={rec} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="No Projects Uploaded Yet"
+              description="Engineering software builds and prototypes will appear here once submitted and approved by department admins."
+              icon={FolderKanban}
+              action={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push("/projects")}
+                  className="text-xs font-semibold"
+                >
+                  Clear Search Filters
+                </Button>
+              }
+            />
+          )}
         </div>
       </div>
     </div>

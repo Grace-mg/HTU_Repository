@@ -21,7 +21,8 @@ export function downloadProjectPDF(record: DownloadableRecord) {
     record.fileUrl &&
     (record.fileUrl.startsWith("http://") ||
       record.fileUrl.startsWith("https://") ||
-      record.fileUrl.startsWith("blob:"))
+      record.fileUrl.startsWith("blob:") ||
+      record.fileUrl.startsWith("data:"))
   ) {
     const a = document.createElement("a");
     a.href = record.fileUrl;

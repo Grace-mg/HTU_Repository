@@ -190,7 +190,7 @@ export default function AdminApprovalsPage() {
                       </Badge>
                     )}
                     {item.currentStage === "APPROVED" && (
-                      <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-[10px]">
+                      <Badge className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-2 border-emerald-500 text-[10px] font-bold">
                         Approved
                       </Badge>
                     )}
@@ -200,8 +200,8 @@ export default function AdminApprovalsPage() {
                       </Badge>
                     )}
                   </td>
-                  <td className="p-4 text-muted-foreground">
-                    {item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : "N/A"}
+                  <td suppressHydrationWarning className="p-4 text-muted-foreground">
+                    {item.submittedAt ? new Date(item.submittedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A"}
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">

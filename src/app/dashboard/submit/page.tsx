@@ -228,9 +228,28 @@ export default function StudentSubmitProjectPage() {
 
     setIsSubmitting(true);
     try {
+      let uploadedFileData: { fileUrl?: string; fileName?: string; fileSize?: number; mimeType?: string } = {};
+      if (file) {
+        const dataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => resolve(ev.target?.result as string);
+          reader.onerror = () => resolve("");
+          reader.readAsDataURL(file);
+        });
+        if (dataUrl) {
+          uploadedFileData = {
+            fileUrl: dataUrl,
+            fileName: file.name,
+            fileSize: file.size,
+            mimeType: file.type || "application/pdf",
+          };
+        }
+      }
+
       // Student submissions enter as PENDING_HOD for supervisor / HOD approval queue
       const submissionData: CreateRepositoryRecordInput = {
         ...formData,
+        ...uploadedFileData,
         groupMembers,
         status: "PENDING_HOD",
       };

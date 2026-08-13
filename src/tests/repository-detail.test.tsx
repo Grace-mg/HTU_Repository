@@ -53,8 +53,8 @@ describe("Phase 7 Repository Detail Page Tests", () => {
     render(<RecordDetailView record={mockRecord} />);
 
     expect(screen.getByText("Commercial HVAC Energy Optimization System")).toBeDefined();
-    expect(screen.getByText("Engineering Project")).toBeDefined();
-    expect(screen.getByText(/Ama Serwaa/)).toBeDefined();
+    expect(screen.getByText("Student Project")).toBeDefined();
+    expect(screen.getAllByText(/Ama Serwaa/)[0]).toBeDefined();
     expect(screen.getByText(/Ing. Dr. Ebenezer Osei/)).toBeDefined();
     expect(screen.getByText("Faculty of Engineering")).toBeDefined();
     expect(screen.getByText("Mechanical Engineering")).toBeDefined();

@@ -63,7 +63,7 @@ export default function VerifyEmailPage() {
           className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-2"
         >
           <Link href="/login">
-            Proceed to Sign In <ArrowRight className="h-3.5 w-3.5" />
+            Proceed to Sign In
           </Link>
         </Button>
       </div>

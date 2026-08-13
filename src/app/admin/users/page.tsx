@@ -238,8 +238,8 @@ export default function AdminUsersPage() {
                     )}
                   </td>
 
-                  <td className="p-4 text-muted-foreground">
-                    {u.created_at ? new Date(u.created_at).toLocaleDateString() : "N/A"}
+                  <td suppressHydrationWarning className="p-4 text-muted-foreground">
+                    {u.created_at ? new Date(u.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A"}
                   </td>
 
                   <td className="p-4 text-right">

@@ -1,7 +1,11 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
 import {
   User,
+  Users,
+  Mail,
   GraduationCap,
   Building2,
   Calendar,
@@ -20,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { RecordFileCard } from "@/components/projects/record-file-card";
 import { RepositoryRecordCard } from "@/components/projects/repository-record-card";
 import { BookmarkButton } from "@/components/projects/bookmark-button";
+import { repositoryService } from "@/services/supabase-repository-service";
 import { cn } from "@/lib/utils";
 
 export interface RecordDetailViewProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -34,7 +39,15 @@ export function RecordDetailView({
   ...props
 }: RecordDetailViewProps) {
   const isProject = record.recordType === "PROJECT";
-  const backHref = isProject ? "/projects" : "/theses";
+  const backHref = "/browse";
+
+  const [viewsCount, setViewsCount] = React.useState(record.viewsCount || 0);
+
+  React.useEffect(() => {
+    if (!record.id) return;
+    setViewsCount((prev) => prev + 1);
+    repositoryService.incrementViews(record.id).catch(() => {});
+  }, [record.id]);
 
   return (
     <div className={cn("space-y-8", className)} {...props}>
@@ -44,7 +57,7 @@ export function RecordDetailView({
           href={backHref}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to {isProject ? "Projects" : "Theses"} Archive
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Archive
         </Link>
       </div>
 
@@ -60,11 +73,11 @@ export function RecordDetailView({
                 : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30"
             )}
           >
-            {isProject ? "Engineering Project" : "Academic Thesis"}
+            {isProject ? "Student Project" : "Academic Thesis"}
           </Badge>
 
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full">
-            <CheckCircle className="h-3 w-3" /> HOD Approved & Published
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border-2 border-emerald-500 dark:border-emerald-500 px-3 py-0.5 rounded-full shadow-xs">
+            <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> Approved & Published
           </span>
 
           <div className="flex items-center gap-3 ml-auto">
@@ -95,7 +108,7 @@ export function RecordDetailView({
 
           <span className="inline-flex items-center gap-1 ml-auto">
             <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-            {record.viewsCount || 0} Views
+            {viewsCount} Views
           </span>
         </div>
       </div>
@@ -113,6 +126,69 @@ export function RecordDetailView({
               <p className="whitespace-pre-line text-foreground/90 font-normal">
                 {record.abstract}
               </p>
+            </div>
+          </div>
+
+          {/* Project Authors & Group Members Section */}
+          <div className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Users className="h-4 w-4 text-blue-600" /> Project Authors & Group Members
+              </h3>
+              <Badge variant="outline" className="text-[11px] text-blue-600 border-blue-600/30">
+                {record.groupMembers && record.groupMembers.length > 0
+                  ? `${record.groupMembers.length + 1} Team Members`
+                  : "Lead Student Author"}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Primary Lead Student Author */}
+              <div className="p-3 rounded-lg border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                    {record.studentName.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 truncate">
+                      {record.studentName}
+                      <span className="text-[9px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-semibold shrink-0">Lead</span>
+                    </h4>
+                    {record.studentId && (
+                      <p className="text-[11px] font-mono text-muted-foreground truncate">ID: {record.studentId}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Group Members */}
+              {record.groupMembers && record.groupMembers.length > 0 &&
+                record.groupMembers.map((member, idx) => (
+                  <div
+                    key={member.email || idx}
+                    className="p-3 rounded-lg border border-border bg-background space-y-1 hover:border-blue-500/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-full bg-muted text-foreground font-bold text-xs flex items-center justify-center shrink-0 border border-border">
+                        {member.name ? member.name.charAt(0).toUpperCase() : "M"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-foreground truncate">{member.name}</h4>
+                        {member.studentId && (
+                          <p className="text-[11px] font-mono text-muted-foreground truncate">ID: {member.studentId}</p>
+                        )}
+                        {member.email && (
+                          <a
+                            href={`mailto:${member.email}`}
+                            className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 truncate"
+                          >
+                            <Mail className="h-3 w-3 shrink-0 text-blue-600" /> {member.email}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
 
@@ -193,10 +269,10 @@ export function RecordDetailView({
 
               <div className="pt-2 border-t border-border/40">
                 <span className="font-semibold text-muted-foreground block">Date Published</span>
-                <span className="font-medium text-foreground">
+                <span suppressHydrationWarning className="font-medium text-foreground">
                   {record.publishedAt
-                    ? new Date(record.publishedAt).toLocaleDateString()
-                    : new Date(record.createdAt).toLocaleDateString()}
+                    ? new Date(record.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+                    : new Date(record.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                 </span>
               </div>
             </div>

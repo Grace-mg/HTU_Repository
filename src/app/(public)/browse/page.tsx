@@ -85,11 +85,34 @@ export default function BrowsePage() {
       <div className="space-y-4 border-b border-border/40 pb-6">
         {/* Level 1: Faculty Filter Pills & Oval Search Input */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="space-y-1.5 w-full lg:w-auto">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
               Select Faculty
             </span>
-            <div className="flex flex-wrap items-center gap-2 overflow-x-auto py-1 no-scrollbar">
+
+            {/* Mobile Select Dropdown */}
+            <div className="block md:hidden w-full">
+              <select
+                value={facultyParam}
+                onChange={(e) =>
+                  updateParams({
+                    faculty: e.target.value === "all" ? null : e.target.value,
+                    department: null,
+                  })
+                }
+                className="w-full rounded-full border border-slate-300 dark:border-slate-700 bg-card text-foreground px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-xs cursor-pointer"
+              >
+                <option value="all">All Faculties</option>
+                {HTU_FACULTIES.map((fac) => (
+                  <option key={fac.id} value={fac.id}>
+                    {fac.code} - {fac.name.split("(")[0].trim()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Desktop Faculty Pills */}
+            <div className="hidden md:flex flex-wrap items-center gap-2 overflow-x-auto py-1 no-scrollbar">
               {/* All Faculties Pill */}
               <button
                 type="button"
@@ -146,14 +169,36 @@ export default function BrowsePage() {
           </div>
         </div>
 
-        {/* Level 2: Sub-Department Pills (Appears when a specific Faculty is selected) */}
+        {/* Level 2: Sub-Department Pills & Mobile Dropdown */}
         {availableDepartments.length > 0 && (
           <div className="pt-3 border-t border-border/40 space-y-1.5 animate-fadeIn">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
-              <span>Departments under {HTU_FACULTIES.find(f => f.id === facultyParam)?.code}</span>
+              <span>Departments under {HTU_FACULTIES.find((f) => f.id === facultyParam)?.code}</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </div>
-            <div className="flex flex-wrap items-center gap-2 overflow-x-auto py-1 no-scrollbar">
+
+            {/* Mobile Department Select Dropdown */}
+            <div className="block md:hidden w-full">
+              <select
+                value={deptParam}
+                onChange={(e) =>
+                  updateParams({
+                    department: e.target.value === "all" ? null : e.target.value,
+                  })
+                }
+                className="w-full rounded-full border border-blue-300 dark:border-blue-800 bg-card text-foreground px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-xs cursor-pointer"
+              >
+                <option value="all">All Departments</option>
+                {availableDepartments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Desktop Department Pills */}
+            <div className="hidden md:flex flex-wrap items-center gap-2 overflow-x-auto py-1 no-scrollbar">
               {/* All Departments in Faculty Pill */}
               <button
                 type="button"

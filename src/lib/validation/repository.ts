@@ -30,7 +30,7 @@ export const createRepositoryRecordSchema = z.object({
   studentId: z.string().trim().optional(),
   groupMembers: z.array(groupMemberSchema).optional(),
   supervisorName: z.string().trim().min(2, "Supervisor name is required"),
-  academicYear: z
+  academicYear: z.coerce
     .number({ invalid_type_error: "Academic year must be a number" })
     .int()
     .min(2000, "Academic year must be after 2000")
@@ -39,6 +39,10 @@ export const createRepositoryRecordSchema = z.object({
   departmentId: z.string().min(1, "Department selection is required"),
   categoryId: z.string().min(1, "Category selection is required"),
   keywords: z.array(z.string().trim().min(1)).min(1, "At least one keyword is required"),
+  fileUrl: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSize: z.number().optional(),
+  mimeType: z.string().optional(),
 });
 
 export type CreateRepositoryRecordInput = z.infer<typeof createRepositoryRecordSchema>;

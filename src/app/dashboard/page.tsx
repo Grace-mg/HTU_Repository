@@ -46,7 +46,6 @@ export default function UserDashboardPage() {
             <div className="h-10 w-10 rounded-lg bg-blue-600 text-white flex items-center justify-center">
               <UploadCloud className="h-5 w-5" />
             </div>
-            <ArrowRight className="h-4 w-4 text-blue-600 group-hover:translate-x-1 transition-all" />
           </div>
           <div>
             <h3 className="font-bold text-sm text-foreground group-hover:text-blue-600 transition-colors">
@@ -66,7 +65,6 @@ export default function UserDashboardPage() {
             <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center dark:bg-blue-950/50">
               <FolderOpen className="h-5 w-5" />
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
           </div>
           <div>
             <h3 className="font-bold text-sm text-foreground group-hover:text-blue-600 transition-colors">
@@ -86,7 +84,6 @@ export default function UserDashboardPage() {
             <div className="h-10 w-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center dark:bg-amber-950/50">
               <BookOpen className="h-5 w-5" />
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
           </div>
           <div>
             <h3 className="font-bold text-sm text-foreground group-hover:text-amber-600 transition-colors">

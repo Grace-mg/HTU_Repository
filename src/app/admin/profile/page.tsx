@@ -27,7 +27,7 @@ export default function AdminProfilePage() {
           fullName: u.name || "System Administrator",
           email: u.email || "wonderdogbe595@gmail.com",
           role: u.role || "ADMIN",
-          registeredAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "2026-08-01",
+          registeredAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "2026-08-01",
         });
       }
     }

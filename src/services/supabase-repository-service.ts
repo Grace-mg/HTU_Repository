@@ -189,16 +189,46 @@ export class SupabaseRepositoryService {
   }
 
   async incrementViews(id: string): Promise<void> {
-    const { data } = await this.client.from("repository_records").select("views_count").eq("id", id).single();
-    if (data) {
-      await this.client.from("repository_records").update({ views_count: (data.views_count || 0) + 1 }).eq("id", id);
+    try {
+      const { data } = await this.client.from("repository_records").select("views_count").eq("id", id).single();
+      if (data) {
+        await this.client.from("repository_records").update({ views_count: (data.views_count || 0) + 1 }).eq("id", id);
+      }
+    } catch {}
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const list: RepositoryRecord[] = JSON.parse(stored);
+          const updated = list.map((r) =>
+            r.id === id ? { ...r, viewsCount: (r.viewsCount || 0) + 1 } : r
+          );
+          localStorage.setItem("local_user_submissions", JSON.stringify(updated));
+        }
+      } catch {}
     }
   }
 
   async incrementDownloads(id: string): Promise<void> {
-    const { data } = await this.client.from("repository_records").select("downloads_count").eq("id", id).single();
-    if (data) {
-      await this.client.from("repository_records").update({ downloads_count: (data.downloads_count || 0) + 1 }).eq("id", id);
+    try {
+      const { data } = await this.client.from("repository_records").select("downloads_count").eq("id", id).single();
+      if (data) {
+        await this.client.from("repository_records").update({ downloads_count: (data.downloads_count || 0) + 1 }).eq("id", id);
+      }
+    } catch {}
+
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("local_user_submissions");
+        if (stored) {
+          const list: RepositoryRecord[] = JSON.parse(stored);
+          const updated = list.map((r) =>
+            r.id === id ? { ...r, downloadsCount: (r.downloadsCount || 0) + 1 } : r
+          );
+          localStorage.setItem("local_user_submissions", JSON.stringify(updated));
+        }
+      } catch {}
     }
   }
 

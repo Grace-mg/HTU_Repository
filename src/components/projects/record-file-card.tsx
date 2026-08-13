@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { Download, FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,9 +87,9 @@ export function RecordFileCard({
       </div>
 
       <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 className="h-3.5 w-3.5" />
-          <span>HOD Approved File</span>
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 border-2 border-emerald-500 px-2.5 py-0.5 rounded-full">
+          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>Approved File</span>
         </div>
 
         <Button

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const adminSupabase = createAdminClient();
     let query = adminSupabase
       .from("repository_records")
-      .select("*")
+      .select("*, faculties(name), departments(name), categories(name)")
       .order("created_at", { ascending: false });
 
     if (pendingOnly) {

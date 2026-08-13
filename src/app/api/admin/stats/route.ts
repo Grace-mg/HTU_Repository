@@ -7,12 +7,12 @@ export async function GET() {
 
     const { count: totalRecords } = await adminSupabase
       .from("repository_records")
-      .select("*", { count: "exact", head: true });
+      .select("id", { count: "exact" });
 
     const { count: pendingApprovals } = await adminSupabase
       .from("repository_records")
-      .select("*", { count: "exact", head: true })
-      .in("status", ["PENDING_HOD", "PENDING_DEAN"]);
+      .select("id", { count: "exact" })
+      .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING", "SUBMITTED", "DRAFT"]);
 
     // Count total unique users combining auth.users and public.profiles
     const userIds = new Set<string>();

@@ -47,7 +47,7 @@ export async function PATCH(
 
     const adminSupabase = createAdminClient();
     const updateData: any = { status };
-    if (status === "PUBLISHED") {
+    if (status === "PUBLISHED" || status === "APPROVED") {
       updateData.published_at = new Date().toISOString();
     }
 

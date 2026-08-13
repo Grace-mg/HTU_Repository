@@ -21,15 +21,7 @@ function HeroSection() {
           <Button
             asChild
             size="lg"
-            className="min-w-[180px] bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 py-3 text-xs font-bold tracking-wider uppercase shadow-lg shadow-blue-600/30"
-          >
-            <Link href="/login">Sign In</Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="min-w-[180px] border border-slate-200/80 dark:border-white/20 bg-white/40 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-white/70 dark:hover:bg-white/20 rounded-full px-8 py-3 text-xs font-bold tracking-wider uppercase transition-all shadow-sm"
+            className="min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 py-3 text-xs font-bold tracking-wider uppercase shadow-lg shadow-blue-600/30"
           >
             <Link href="/browse">Explore the Archive</Link>
           </Button>

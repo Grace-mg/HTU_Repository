@@ -180,7 +180,7 @@ function CTASection() {
             className="min-w-[180px] bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 py-3 text-xs font-bold tracking-wider uppercase shadow-lg shadow-blue-600/30"
           >
             <Link href="/browse">
-              Browse Projects <ArrowRight className="ml-2 h-4 w-4" />
+              Browse Projects
             </Link>
           </Button>
           <Button

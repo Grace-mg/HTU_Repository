@@ -34,12 +34,12 @@ export class SupabaseAdminService {
       try {
         const { count: totalRecords } = await this.client
           .from("repository_records")
-          .select("*", { count: "exact", head: true });
+          .select("id", { count: "exact" });
 
         const { count: pendingApprovals } = await this.client
           .from("repository_records")
-          .select("*", { count: "exact", head: true })
-          .in("status", ["PENDING_HOD", "PENDING_DEAN"]);
+          .select("id", { count: "exact" })
+          .in("status", ["PENDING_HOD", "PENDING_DEAN", "PENDING", "SUBMITTED", "DRAFT"]);
 
         let usersCount = 0;
         try {
@@ -161,6 +161,30 @@ export class SupabaseAdminService {
           );
           const existingIds = new Set(records.map((r) => r.id));
           const newLocals = pendingLocals.filter((l) => !existingIds.has(l.id));
+
+          // Auto-push unsynced local submissions to central Supabase DB
+          newLocals.forEach((loc) => {
+            fetch("/api/records", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: loc.title,
+                recordType: loc.recordType,
+                status: loc.status || "PENDING_HOD",
+                abstract: loc.abstract,
+                studentName: loc.studentName,
+                studentId: loc.studentId,
+                groupMembers: loc.groupMembers || [],
+                supervisorName: loc.supervisorName,
+                academicYear: loc.academicYear,
+                facultyId: loc.facultyId || "fast",
+                departmentId: loc.departmentId || "cs",
+                categoryId: loc.categoryId || "software",
+                keywords: loc.keywords || ["Submission"],
+              }),
+            }).catch(() => {});
+          });
+
           records = [...newLocals, ...records];
         }
       } catch {}
@@ -243,6 +267,10 @@ export class SupabaseAdminService {
       category_id: input.categoryId || null,
       keywords: input.keywords || [],
       group_members: input.groupMembers || [],
+      file_url: input.fileUrl || null,
+      file_name: input.fileName || null,
+      file_size: input.fileSize || null,
+      mime_type: input.mimeType || null,
     };
 
     if (input.status === "PUBLISHED") {
@@ -291,6 +319,10 @@ export class SupabaseAdminService {
       categoryId: input.categoryId,
       categoryName,
       keywords: input.keywords || [],
+      fileUrl: input.fileUrl,
+      fileName: input.fileName,
+      fileSize: input.fileSize,
+      mimeType: input.mimeType,
       viewsCount: 0,
       downloadsCount: 0,
       createdAt: now,
@@ -311,6 +343,45 @@ export class SupabaseAdminService {
   }
 
   async updateRecordStatus(id: string, status: RecordStatus): Promise<boolean> {
+    try {
+      const res = await fetch(`/api/admin/records/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        if (typeof window !== "undefined") {
+          try {
+            const stored = localStorage.getItem("local_user_submissions");
+            if (stored) {
+              const list: RepositoryRecord[] = JSON.parse(stored);
+              const idx = list.findIndex((r) => r.id === id);
+              if (idx !== -1) {
+                list[idx].status = status;
+                if (status === "PUBLISHED" || status === "APPROVED") {
+                  list[idx].publishedAt = new Date().toISOString();
+                }
+                localStorage.setItem("local_user_submissions", JSON.stringify(list));
+              }
+            }
+          } catch {}
+        }
+        return true;
+      }
+    } catch (err) {
+      console.warn("[supabase-admin-service] /api/admin/records/[id] PATCH failed, attempting client fallback", err);
+    }
+
+    const updateData: any = { status };
+    if (status === "PUBLISHED" || status === "APPROVED") {
+      updateData.published_at = new Date().toISOString();
+    }
+
+    const { error } = await this.client
+      .from("repository_records")
+      .update(updateData)
+      .eq("id", id);
+
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem("local_user_submissions");
@@ -323,34 +394,10 @@ export class SupabaseAdminService {
               list[idx].publishedAt = new Date().toISOString();
             }
             localStorage.setItem("local_user_submissions", JSON.stringify(list));
-            return true;
           }
         }
       } catch {}
     }
-
-    try {
-      const res = await fetch(`/api/admin/records/${encodeURIComponent(id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        return true;
-      }
-    } catch (err) {
-      console.warn("[supabase-admin-service] /api/admin/records/[id] PATCH failed, attempting client fallback", err);
-    }
-
-    const updateData: any = { status };
-    if (status === "PUBLISHED") {
-      updateData.published_at = new Date().toISOString();
-    }
-
-    const { error } = await this.client
-      .from("repository_records")
-      .update(updateData)
-      .eq("id", id);
 
     return !error;
   }

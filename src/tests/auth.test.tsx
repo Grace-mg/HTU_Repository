@@ -18,11 +18,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Phase 8 Authentication Pages & Session Workflow Tests", () => {
-  it("renders Landing Page with Sign In button pointing to authentication session (/login)", () => {
+  it("renders Landing Page with Explore the Archive CTA pointing to /browse", () => {
     render(<HomePage />);
-    const signInLinks = screen.getAllByRole("link", { name: /sign in/i });
-    expect(signInLinks.length).toBeGreaterThan(0);
-    expect(signInLinks[0].getAttribute("href")).toBe("/login");
+    const exploreLinks = screen.getAllByRole("link", { name: /explore the archive/i });
+    expect(exploreLinks.length).toBeGreaterThan(0);
+    expect(exploreLinks[0].getAttribute("href")).toBe("/browse");
   });
 
   it("renders Login page correctly as the authentication session entry point", () => {
