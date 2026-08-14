@@ -5,6 +5,7 @@ import LoginPage from "@/app/(auth)/login/page";
 import RegisterPage from "@/app/(auth)/register/page";
 import ForgotPasswordPage from "@/app/(auth)/forgot-password/page";
 import VerifyEmailPage from "@/app/(auth)/verify-email/page";
+import AcceptInvitePage from "@/app/(auth)/accept-invite/page";
 
 import HomePage from "@/app/(public)/page";
 
@@ -55,6 +56,12 @@ describe("Phase 8 Authentication Pages & Session Workflow Tests", () => {
     render(<VerifyEmailPage />);
     expect(screen.getByRole("heading", { name: /enter verification code/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /resend 8-digit code/i })).toBeInTheDocument();
+  });
+
+  it("renders Accept Admin Invite page correctly", () => {
+    render(<AcceptInvitePage />);
+    expect(screen.getByRole("heading", { name: /create admin password/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /create admin account/i })).toBeInTheDocument();
   });
 });
 

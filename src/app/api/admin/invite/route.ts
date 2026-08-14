@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const { email, fullName } = await req.json();
@@ -13,7 +15,7 @@ export async function POST(req: NextRequest) {
     const origin = req.headers.get("origin") || "http://localhost:3000";
 
     const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${origin}/auth/callback`,
+      redirectTo: `${origin}/auth/accept-invite`,
       data: {
         full_name: fullName || email.split("@")[0],
         role: "ADMIN",
