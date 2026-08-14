@@ -12,7 +12,11 @@ export async function POST(req: NextRequest) {
     }
 
     const adminClient = createAdminClient();
-    const origin = req.headers.get("origin") || "http://localhost:3000";
+    const origin =
+      req.headers.get("origin") ||
+      (req.headers.get("referer") ? new URL(req.headers.get("referer")!).origin : null) ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      "http://localhost:3000";
 
     const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
       redirectTo: `${origin}/auth/accept-invite`,
