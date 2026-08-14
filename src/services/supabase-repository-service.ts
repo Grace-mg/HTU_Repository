@@ -62,11 +62,11 @@ export class SupabaseRepositoryService {
       query = query.eq("record_type", filters.recordType);
     }
 
-    if (filters.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
-    } else if (filters.status !== "all") {
-      // Default to PUBLISHED and APPROVED records for public queries
+    if (filters.status === "PUBLISHED" || filters.status === "APPROVED" || !filters.status) {
+      // For public browse queries, strictly include both APPROVED and PUBLISHED records
       query = query.in("status", ["PUBLISHED", "APPROVED"]);
+    } else if (filters.status !== "all") {
+      query = query.eq("status", filters.status);
     }
 
     if (filters.facultyId) {
@@ -118,12 +118,13 @@ export class SupabaseRepositoryService {
         const stored = localStorage.getItem("local_user_submissions");
         if (stored) {
           const localList: RepositoryRecord[] = JSON.parse(stored);
-          const targetStatus = filters.status || ["PUBLISHED", "APPROVED"];
+          const isApprovedQuery = filters.status === "PUBLISHED" || filters.status === "APPROVED" || !filters.status;
           const matchingLocals = localList.filter((r) => {
-            if (Array.isArray(targetStatus)) {
-              return targetStatus.includes(r.status);
+            if (isApprovedQuery) {
+              return r.status === "PUBLISHED" || r.status === "APPROVED";
             }
-            return r.status === targetStatus;
+            if (filters.status === "all") return true;
+            return r.status === filters.status;
           });
           const existingIds = new Set(records.map((r) => r.id));
           const newLocals = matchingLocals.filter((l) => !existingIds.has(l.id));

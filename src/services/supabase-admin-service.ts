@@ -20,7 +20,7 @@ export class SupabaseAdminService {
 
     if (typeof window !== "undefined") {
       try {
-        const res = await fetch("/api/admin/stats");
+        const res = await fetch("/api/admin/stats", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json.stats) stats = json.stats;
@@ -73,7 +73,7 @@ export class SupabaseAdminService {
     let records: RepositoryRecord[] = [];
     if (typeof window !== "undefined") {
       try {
-        const res = await fetch("/api/admin/records");
+        const res = await fetch("/api/admin/records", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (json.records) records = json.records.map(mapRowToRecord);
@@ -526,7 +526,7 @@ export class SupabaseAdminService {
 
   async getUsers(): Promise<any[]> {
     try {
-      const res = await fetch("/api/admin/users");
+      const res = await fetch("/api/admin/users", { cache: "no-store" });
       if (res.ok) {
         const json = await res.json();
         if (json.users) return json.users;

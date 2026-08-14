@@ -10,5 +10,5 @@ export interface AuthService {
   getCurrentUser(): Promise<User | null>;
   getSession(): Promise<AuthSession | null>;
   verifyOtp?(email: string, token: string): Promise<AuthSession>;
-  acceptAdminInvite?(password: string, fullName?: string): Promise<AuthSession>;
+  acceptAdminInvite?(password: string, fullName?: string, targetEmail?: string): Promise<AuthSession>;
 }

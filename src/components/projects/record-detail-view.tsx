@@ -28,7 +28,12 @@ import { RecordFileCard } from "@/components/projects/record-file-card";
 import { RepositoryRecordCard } from "@/components/projects/repository-record-card";
 import { BookmarkButton } from "@/components/projects/bookmark-button";
 import { repositoryService } from "@/services/supabase-repository-service";
+import { SupabaseAuthService } from "@/services/supabase-auth-service";
+import { canUserAccessRecord } from "@/lib/auth/record-permissions";
+import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const authService = new SupabaseAuthService();
 
 export interface RecordDetailViewProps extends React.HTMLAttributes<HTMLDivElement> {
   record: RepositoryRecord;
@@ -83,12 +88,63 @@ export function RecordDetailView({
   }, [record.status]);
 
   const [viewsCount, setViewsCount] = React.useState(record.viewsCount || 0);
+  const [currentUser, setCurrentUser] = React.useState<any | null>(null);
+  const [authLoaded, setAuthLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    async function loadUser() {
+      const user = await authService.getCurrentUser();
+      setCurrentUser(user);
+      setAuthLoaded(true);
+    }
+    loadUser();
+  }, []);
 
   React.useEffect(() => {
     if (!record.id) return;
     setViewsCount((prev) => prev + 1);
     repositoryService.incrementViews(record.id).catch(() => {});
   }, [record.id]);
+
+  const hasAccess = React.useMemo(() => {
+    return canUserAccessRecord(record, currentUser);
+  }, [record, currentUser]);
+
+  if (authLoaded && !hasAccess) {
+    return (
+      <div className={cn("space-y-6", className)} {...props}>
+        <div>
+          <Link
+            href={backHref}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> {backLabel}
+          </Link>
+        </div>
+
+        <div className="rounded-xl border-2 border-amber-300 dark:border-amber-700/80 bg-amber-50/70 dark:bg-amber-950/40 p-8 sm:p-12 text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 border border-amber-300">
+            <Lock className="h-7 w-7" />
+          </div>
+
+          <div className="space-y-2 max-w-md mx-auto">
+            <h2 className="text-xl font-extrabold text-foreground">
+              Pending Review - Access Restricted
+            </h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              This repository record is currently pending institutional review and approval. Only tagged student authors, group team members, and administrators can view pending projects prior to publication.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-6">
+              <Link href={backHref}>Return to Repository</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("space-y-8", className)} {...props}>
@@ -130,7 +186,7 @@ export function RecordDetailView({
             <span className="text-xs text-muted-foreground">
               Academic Year {record.academicYear}
             </span>
-            <BookmarkButton recordId={record.id} recordTitle={record.title} />
+            <BookmarkButton recordId={record.id} recordTitle={record.title} recordStatus={record.status} />
           </div>
         </div>
 

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bookmark, Lock, Check, LogIn } from "lucide-react";
+import { Bookmark, Lock, LogIn, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,45 +13,118 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { SupabaseAuthService } from "@/services/supabase-auth-service";
+import { SupabaseBookmarkService } from "@/services/supabase-bookmark-service";
+import { isRecordApproved } from "@/lib/auth/record-permissions";
+import { getSyncAuthUser } from "@/lib/auth/client-auth";
+
+const authService = new SupabaseAuthService();
+const bookmarkService = new SupabaseBookmarkService();
 
 export interface BookmarkButtonProps {
   recordId: string;
   recordTitle?: string;
+  recordStatus?: string;
   initialSaved?: boolean;
   isAuthenticated?: boolean;
   compact?: boolean;
   onToggleSave?: (saved: boolean) => void;
 }
 
-export function BookmarkButton({
+export const BookmarkButton = React.memo(function BookmarkButton({
   recordId,
   recordTitle,
+  recordStatus,
   initialSaved = false,
-  isAuthenticated = false,
+  isAuthenticated: propIsAuthenticated,
   compact = false,
   onToggleSave,
 }: BookmarkButtonProps) {
   const [saved, setSaved] = React.useState(initialSaved);
   const [showLoginModal, setShowLoginModal] = React.useState(false);
+  const [showUnapprovedModal, setShowUnapprovedModal] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
+  // Synchronous initial auth check to eliminate false logout states
+  const [currentUser, setCurrentUser] = React.useState<any | null>(() => getSyncAuthUser());
+
+  // Asynchronous auth sync & database bookmark check on mount
+  React.useEffect(() => {
+    let isMounted = true;
+
+    async function checkAuthAndBookmark() {
+      try {
+        const syncUser = getSyncAuthUser();
+        const user = (await authService.getCurrentUser()) || syncUser;
+        if (!isMounted) return;
+
+        if (user) {
+          setCurrentUser(user);
+          if (recordId) {
+            const isSavedInDb = await bookmarkService.isBookmarked(user.id, recordId);
+            if (isMounted) {
+              setSaved(isSavedInDb);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[BookmarkButton] Auth check error:", err);
+      }
+    }
+
+    checkAuthAndBookmark();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [recordId]);
+
+  // Determine effective user session
+  const activeUser = currentUser || getSyncAuthUser();
+  const effectiveIsAuthenticated =
+    typeof propIsAuthenticated === "boolean" ? propIsAuthenticated : Boolean(activeUser);
+
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!isAuthenticated) {
+    // Refresh sync user before decision
+    const currentSyncUser = activeUser || getSyncAuthUser();
+    const isUserLoggedIn = typeof propIsAuthenticated === "boolean" ? propIsAuthenticated : Boolean(currentSyncUser);
+
+    // 1. If not authenticated -> Show Sign In Modal
+    if (!isUserLoggedIn) {
       setShowLoginModal(true);
       return;
     }
 
+    // 2. Only approved projects can be saved
+    if (recordStatus && !isRecordApproved(recordStatus)) {
+      setShowUnapprovedModal(true);
+      return;
+    }
+
+    // 3. Authenticated & Approved -> Toggle bookmark smoothly
     setIsLoading(true);
 
-    setTimeout(() => {
-      const nextState = !saved;
-      setSaved(nextState);
-      setIsLoading(false);
+    const nextState = !saved;
+    setSaved(nextState); // Optimistic UI update
+
+    try {
+      if (currentSyncUser?.id && recordId) {
+        if (nextState) {
+          await bookmarkService.addBookmark(currentSyncUser.id, recordId);
+        } else {
+          await bookmarkService.removeBookmark(currentSyncUser.id, recordId);
+        }
+      }
       onToggleSave?.(nextState);
-    }, 300);
+    } catch (err) {
+      console.error("[BookmarkButton] Failed to update bookmark state:", err);
+      setSaved(!nextState); // Revert on failure
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -61,9 +134,11 @@ export function BookmarkButton({
         variant={saved ? "default" : "outline"}
         size={compact ? "icon" : "sm"}
         onClick={handleClick}
+        onMouseEnter={(e) => e.stopPropagation()}
+        onMouseLeave={(e) => e.stopPropagation()}
         disabled={isLoading}
         className={cn(
-          "transition-all duration-200 gap-1.5 select-none",
+          "transition-colors duration-150 gap-1.5 select-none shrink-0 pointer-events-auto",
           saved
             ? "bg-purple-600 hover:bg-purple-700 text-white border-purple-600 shadow-sm"
             : "border-border text-muted-foreground hover:text-foreground hover:bg-accent",
@@ -73,8 +148,8 @@ export function BookmarkButton({
       >
         <Bookmark
           className={cn(
-            "h-4 w-4 transition-transform duration-200",
-            saved && "fill-current scale-110 text-white"
+            "h-4 w-4 transition-colors duration-150",
+            saved && "fill-current scale-105 text-white"
           )}
         />
         {!compact && (
@@ -125,6 +200,40 @@ export function BookmarkButton({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Unapproved Record Bookmark Restriction Pop-Up Modal */}
+      <Dialog open={showUnapprovedModal} onOpenChange={setShowUnapprovedModal}>
+        <DialogContent className="sm:max-w-md bg-card border-border shadow-xl">
+          <DialogHeader className="space-y-3 pt-2">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 border border-amber-300 dark:border-amber-700">
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-center text-lg font-extrabold text-foreground">
+              Only Approved Projects Can Be Saved
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs text-muted-foreground leading-relaxed px-2">
+              This repository record is currently pending institutional review. Projects can only be added to saved records once officially approved and published.
+            </DialogDescription>
+          </DialogHeader>
+
+          {recordTitle && (
+            <div className="rounded-lg border border-amber-200/80 bg-amber-50/60 dark:bg-amber-950/30 dark:border-amber-800/50 p-3.5 text-xs text-foreground font-bold truncate text-center">
+              &ldquo;{recordTitle}&rdquo;
+            </div>
+          )}
+
+          <DialogFooter className="flex justify-end pt-3">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setShowUnapprovedModal(false)}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-6 h-9 rounded-md shadow-xs"
+            >
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
-}
+});

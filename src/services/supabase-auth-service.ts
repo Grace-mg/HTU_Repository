@@ -302,8 +302,31 @@ export class SupabaseAuthService implements AuthService {
     }
   }
 
-  async acceptAdminInvite(password: string, fullName?: string): Promise<AuthSession> {
+  async acceptAdminInvite(password: string, fullName?: string, targetEmail?: string): Promise<AuthSession> {
     const now = new Date().toISOString();
+
+    // 1. Pre-restore session from URL hash fragment or query params if available
+    if (typeof window !== "undefined") {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const searchParams = new URLSearchParams(window.location.search);
+
+        const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token") || searchParams.get("refresh_token");
+        const code = searchParams.get("code");
+        const tokenHash = searchParams.get("token_hash");
+
+        if (accessToken && refreshToken) {
+          await this.client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        } else if (code) {
+          await this.client.auth.exchangeCodeForSession(code);
+        } else if (tokenHash) {
+          await this.client.auth.verifyOtp({ token_hash: tokenHash, type: "invite" });
+        }
+      } catch (e) {
+        console.warn("[SupabaseAuthService] Pre-session restoration notice:", e);
+      }
+    }
 
     try {
       const updatePayload: any = { password };
@@ -313,14 +336,34 @@ export class SupabaseAuthService implements AuthService {
         updatePayload.data = { role: "ADMIN" };
       }
 
+      let user: any = null;
       const response = await this.client.auth.updateUser(updatePayload);
 
-      if (response?.error) {
-        throw new Error(response.error.message);
+      if (response?.error || !response?.data?.user) {
+        console.warn("[SupabaseAuthService] client.auth.updateUser notice:", response?.error?.message);
+        
+        // Server API Fallback using Admin Service Role API
+        const res = await fetch("/api/admin/accept-invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: targetEmail,
+            password,
+            fullName,
+          }),
+        });
+
+        const apiResult = await res.json();
+        if (!res.ok || apiResult.error) {
+          throw new Error(apiResult.error || response?.error?.message || "Failed to set up admin password");
+        }
+
+        user = apiResult.user;
+      } else {
+        user = response.data.user;
       }
 
-      const user = response?.data?.user;
-      const userEmail = user?.email || "admin@htu.edu.gh";
+      const userEmail = user?.email || targetEmail || "admin@htu.edu.gh";
       const finalName = fullName || user?.user_metadata?.full_name || formatEmailToName(userEmail);
 
       const adminUser: User = {

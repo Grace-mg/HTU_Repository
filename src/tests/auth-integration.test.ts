@@ -71,14 +71,13 @@ describe("Landing Page Access Control Middleware Tests", () => {
     expect(res?.headers.get("location")).toBe("http://localhost:3000/login?redirectTo=%2Fdashboard");
   });
 
-  it("redirects authenticated users on /login to their appropriate dashboard", async () => {
+  it("allows users visiting /login to access the login auth page directly", async () => {
     const req = new NextRequest("http://localhost:3000/login");
     req.cookies.set("auth-token", "valid-user-token");
     req.cookies.set("user-role", "USER");
 
     const res = await middleware(req);
-    expect(res?.status).toBe(307);
-    expect(res?.headers.get("location")).toBe("http://localhost:3000/dashboard");
+    expect(res?.headers.get("location")).toBeNull();
   });
 });
 

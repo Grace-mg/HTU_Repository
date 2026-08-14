@@ -70,7 +70,7 @@ export default function AcceptInvitePage() {
 
     setIsSubmitting(true);
     try {
-      await authService.acceptAdminInvite(password, fullName);
+      await authService.acceptAdminInvite(password, fullName, detectedEmail);
       setSuccessMessage("Admin Account Configured! Redirecting to your Admin Control Panel...");
       setTimeout(() => {
         router.push("/admin");

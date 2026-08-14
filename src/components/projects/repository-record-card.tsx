@@ -53,7 +53,7 @@ export function RepositoryRecordCard({
   return (
     <div
       className={cn(
-        "group flex flex-col justify-between rounded-xl border-2 border-slate-300 dark:border-slate-700/80 bg-card p-5 shadow-md hover:shadow-xl hover:border-blue-600 dark:hover:border-blue-500 hover:-translate-y-0.5 transition-all duration-200",
+        "group flex flex-col justify-between rounded-xl border-2 border-slate-300 dark:border-slate-700/80 bg-card p-5 shadow-md hover:shadow-xl hover:border-blue-600 dark:hover:border-blue-500 transition-[border-color,box-shadow] duration-150",
         className
       )}
       {...props}
@@ -89,7 +89,7 @@ export function RepositoryRecordCard({
             <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded">
               {record.academicYear}
             </span>
-            <BookmarkButton recordId={record.id} recordTitle={record.title} compact />
+            <BookmarkButton recordId={record.id} recordTitle={record.title} recordStatus={record.status} compact />
           </div>
         </div>
 

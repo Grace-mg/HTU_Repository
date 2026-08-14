@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { sanitizeRedirectUrl, getHomeRouteForRole } from "@/lib/auth/permissions";
+import { sanitizeRedirectUrl } from "@/lib/auth/permissions";
 
 /**
  * Main Next.js Route Protection Middleware
  */
 export async function middleware(request: NextRequest) {
-  const { pathname, searchParams } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
   // Read auth cookie
   const authToken = request.cookies.get("sb-access-token")?.value || request.cookies.get("auth-token")?.value;
@@ -34,17 +34,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Guest-Only Auth Routes (/login, /register)
-  if (pathname === "/login" || pathname === "/register") {
-    if (isAuthenticated) {
-      const redirectToParam = searchParams.get("redirectTo");
-      const targetPath = redirectToParam
-        ? sanitizeRedirectUrl(redirectToParam)
-        : getHomeRouteForRole(userRole);
-      return NextResponse.redirect(new URL(targetPath, request.url));
-    }
-  }
-
+  // Allow users to visit /login and /register auth pages directly each and every time
   return NextResponse.next();
 }
 
@@ -52,7 +42,5 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/dashboard/:path*",
-    "/login",
-    "/register",
   ],
 };
